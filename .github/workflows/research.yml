@@ -1,0 +1,30 @@
+name: Piyasa taraması araştırması
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: 'Kaç yıl'
+        default: '3'
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Araştırmayı çalıştır
+        run: node --max-old-space-size=6000 bot/research.js
+        env:
+          YEARS: ${{ inputs.years }}
+      - name: Sonucu kaydet
+        run: |
+          git config user.name "trend-botu"
+          git config user.email "trend-botu@users.noreply.github.com"
+          git add state/research.json
+          git diff --cached --quiet && exit 0
+          git commit -m "araştırma: $(date -u +%FT%RZ)"
+          for i in 1 2 3; do git pull --rebase && git push && break || sleep 5; done

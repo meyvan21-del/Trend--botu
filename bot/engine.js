@@ -170,11 +170,12 @@ const Engine = (() => {
       A[s] = { b, ind, map, cost: ((p.fees && p.fees[s] != null ? p.fees[s] : p.feePct || 0.05) + p.slipPct) / 100, qty: 0, pos: null, pending: null, strength: 0, cool: -Infinity, last: b[r].c, n: 0, pnl: 0, wins: 0, bars: 0 };
       if (b[r].t > start) start = b[r].t;
     }
+    if (p.startAt != null) start = p.startAt;   // geniş taramada sonradan listelenen varlıklar başlangıcı geciktirmesin
     const names = Object.keys(A); if (!names.length) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
     const times = [...tset].filter(t => t >= start).sort((x, y) => x - y);
     if (times.length < 3) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
     let cash = capital, barsIn = 0; const eq = [], bh = [], trades = [], p0 = {};
-    for (const s of names) { const i = A[s].map.get(times[0]); p0[s] = i != null ? A[s].b[i].c : A[s].last; }
+    for (const s of names) { const i = A[s].map.get(times[0]); p0[s] = i != null ? A[s].b[i].c : A[s].last; A[s].last = p0[s]; }
     const closeAt = (s, t, px, reason) => {
       const a = A[s], out = a.qty * px * (1 - a.cost) - gas, pnl = out - a.pos.usdIn; cash += out;
       trades.push({ sym: s, tIn: a.pos.t, tOut: t, entry: a.pos.entry, exit: px, usdIn: a.pos.usdIn, usdOut: out, pnl, reason });
@@ -204,7 +205,7 @@ const Engine = (() => {
           if (bar.c > a.pos.hi) a.pos.hi = bar.c;
           const ns = a.pos.hi - p.atrK * a.ind.a[i]; if (ns > a.pos.stop) a.pos.stop = ns;
           if (trendBroken(i, a.ind)) a.pending = 'sell';
-        } else if (k >= a.cool && entryOK(i, a.b, a.ind)) { a.pending = 'buy'; a.strength = (bar.c - a.ind.d[i]) / a.ind.a[i]; }
+        } else if (k >= a.cool && entryOK(i, a.b, a.ind) && (!p.canEnter || p.canEnter(s, t))) { a.pending = 'buy'; a.strength = (bar.c - a.ind.d[i]) / a.ind.a[i]; }
         a.last = bar.c;
       }
       if (any) barsIn++;

@@ -16,12 +16,13 @@ async function main(d) {
   if (st.paper.weth != null) { st.paper.tok = st.paper.tok || {}; if (st.paper.weth) st.paper.tok.ETH = st.paper.weth; delete st.paper.weth; }
   const mode = S.live ? 'live' : 'paper';
   const R = st.rt[mode] = Core.migrateRT(Object.assign(Core.freshRT(), st.rt[mode]));
-  const sig = () => JSON.stringify([mode, Object.keys(R.positions).sort(), R.halted && R.halted.kind, R.barT, st.trades.length, st.events.length && st.events[0].msg]);
+  const sig = () => JSON.stringify([mode, S.assets, S.maxPositions, st.assets, st.maxPositions, Object.keys(R.positions).sort(), R.halted && R.halted.kind, R.barT, st.trades.length, st.events.length && st.events[0].msg]);
   const before = sig(), wasHalted = R.halted && R.halted.kind;
+  st.assets = S.assets; st.maxPositions = S.maxPositions;
   const ev = (msg, bad) => { if (st.events[0] && st.events[0].msg === msg) { st.events[0].t = now; return; } st.events.unshift({ t: now, msg, bad: !!bad }); if (st.events.length > 40) st.events.length = 40; };
   const logTrade = x => { st.trades.push(Object.assign({ t: now, mode }, x)); if (st.trades.length > 80) st.trades = st.trades.slice(-80); };
   if (st.mode && st.mode !== mode) ev(mode === 'live' ? 'Gerçek para moduna geçildi.' : 'Deneme moduna geçildi.');
-  st.mode = mode; st.assets = S.assets; st.maxPositions = S.maxPositions;
+  st.mode = mode;
   if (String(env.RESET_HALT) === 'true' && R.halted) { R.halted = null; R.errCount = 0; R.peakEq = null; ev('Güvenlik freni elle kaldırıldı.'); }
 
   const finish = () => {

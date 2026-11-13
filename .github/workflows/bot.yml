@@ -1,0 +1,43 @@
+name: Trend Botu
+on:
+  schedule:
+    - cron: '3-59/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      reset_halt:
+        description: 'Güvenlik frenini kaldır'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: trend-botu
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Bağımlılıkları kur
+        working-directory: bot
+        run: npm install --no-audit --no-fund --omit=dev
+      - name: Botu çalıştır
+        id: bot
+        run: node bot/run.js
+        env:
+          BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          RESET_HALT: ${{ inputs.reset_halt }}
+      - name: Durumu kaydet
+        if: always() && steps.bot.outputs.changed == 'true'
+        run: |
+          git config user.name "trend-botu"
+          git config user.email "trend-botu@users.noreply.github.com"
+          git add state/state.json
+          git diff --cached --quiet && exit 0
+          git commit -m "durum: $(date -u +%FT%RZ)"
+          for i in 1 2 3; do git pull --rebase && git push && break || sleep 5; done

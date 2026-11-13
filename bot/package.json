@@ -1,0 +1,7 @@
+{
+  "name": "trend-botu",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Trend Botu sunucu çalıştırıcısı (GitHub Actions)",
+  "dependencies": { "ethers": "6.13.4" }
+}

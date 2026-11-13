@@ -1,12 +1,14 @@
 # Trend Botu
 
-ETH/USDC alıp satan, Arbitrum One üzerinde çalışan trend takip botu. Kâr garantisi yoktur.
+Arbitrum One üzerinde çalışan trend takip botu. Bir varlık listesini (ETH, BTC, ARB, LINK, GMX) tarar; trendi yukarı olan ve yeni zirve yapan varlıkları USDC ile alır, trend bozulunca ya da stop çalışınca satar. Kâr garantisi yoktur.
 
 ## Parçalar
 - `index.html`: kontrol paneli (GitHub Pages bunu yayınlar). MetaMask bağlantısı, bot cüzdanı, para yatırma/çekme, geçmiş testi, simülasyon.
+- `bot/core.js`, `bot/engine.js`: panelin ve sunucu botunun paylaştığı karar ve işlem mantığı.
 - `bot/run.js`: sunucu botu. GitHub Actions yaklaşık 10 dakikada bir çalıştırır; telefon kapalıyken de izler.
 - `bot/config.json`: sunucu botunun ayarları. `"live": false` iken sanal hesapla çalışır, gerçek işlem göndermez.
 - `state/state.json`: sunucu botunun yazdığı durum; panel bunu gösterir.
+- `bot/backtest.js`: gerçek veriyle karşılaştırmalı geçmiş testi (Actions → Geçmiş testi → Run workflow); sonucu `state/backtest.json` dosyasına yazar.
 
 ## Kurulum sırası
 1. Depo ayarlarında Pages'i aç: Settings → Pages → Deploy from a branch → `main` / root.

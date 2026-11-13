@@ -156,6 +156,75 @@ const Engine = (() => {
     };
   }
 
-  return { TF_MS, BARS_PER_YEAR, ema, atr, donchianHigh, indicators, ready, trendUp, entryOK, trendBroken, posFraction, maxDrawdown, backtest };
+  /* Portföy geçmiş testi: aynı kurallar her varlığa ayrı ayrı uygulanır, sermaye ortaktır.
+     data = { SEMBOL: mumlar }, p.fees = { SEMBOL: tek yön borsa ücreti % }, p.maxPositions = aynı anda en çok pozisyon. */
+  function backtestPortfolio(data, p) {
+    const syms = Object.keys(data).filter(s => data[s] && data[s].length > p.emaSlow + p.don + 5);
+    if (!syms.length) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
+    const gas = p.gasUsd, capital = p.capital || 1000, minTrade = p.minTradeUsd || 5, maxPos = p.maxPositions || syms.length;
+    const A = {}, tset = new Set(); let start = -Infinity;
+    for (const s of syms) {
+      const b = data[s], ind = indicators(b, p), map = new Map(); b.forEach((x, i) => { map.set(x.t, i); tset.add(x.t); });
+      let r = 0; while (r < b.length && !ready(r, ind)) r++;
+      if (r >= b.length - 2) continue;
+      A[s] = { b, ind, map, cost: ((p.fees && p.fees[s] != null ? p.fees[s] : p.feePct || 0.05) + p.slipPct) / 100, qty: 0, pos: null, pending: null, strength: 0, cool: -Infinity, last: b[r].c, n: 0, pnl: 0, wins: 0, bars: 0 };
+      if (b[r].t > start) start = b[r].t;
+    }
+    const names = Object.keys(A); if (!names.length) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
+    const times = [...tset].filter(t => t >= start).sort((x, y) => x - y);
+    if (times.length < 3) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
+    let cash = capital, barsIn = 0; const eq = [], bh = [], trades = [], p0 = {};
+    for (const s of names) { const i = A[s].map.get(times[0]); p0[s] = i != null ? A[s].b[i].c : A[s].last; }
+    const closeAt = (s, t, px, reason) => {
+      const a = A[s], out = a.qty * px * (1 - a.cost) - gas, pnl = out - a.pos.usdIn; cash += out;
+      trades.push({ sym: s, tIn: a.pos.t, tOut: t, entry: a.pos.entry, exit: px, usdIn: a.pos.usdIn, usdOut: out, pnl, reason });
+      a.n++; a.pnl += pnl; if (pnl > 0) a.wins++; a.qty = 0; a.pos = null;
+    };
+    for (let k = 0; k < times.length; k++) {
+      const t = times[k], here = [];
+      for (const s of names) { const i = A[s].map.get(t); if (i != null) here.push([s, i]); }
+      // 1) Açılışta bekleyen satışlar, sonra (güçlüden zayıfa) bekleyen alımlar
+      for (const [s, i] of here) { const a = A[s]; if (a.pending === 'sell' && a.pos) { closeAt(s, t, a.b[i].o, 'trend'); a.pending = null; } }
+      const buys = here.filter(([s]) => A[s].pending === 'buy' && !A[s].pos).sort((x, y) => A[y[0]].strength - A[x[0]].strength);
+      for (const [s, i] of buys) {
+        const a = A[s], bar = a.b[i]; a.pending = null;
+        if (names.filter(n => A[n].pos).length >= maxPos) continue;
+        let eqNow = cash; for (const n of names) if (A[n].qty) eqNow += A[n].qty * A[n].last;
+        const amt = Math.min(cash - gas, eqNow * posFraction(bar.o, a.ind.a[i - 1], p));
+        if (amt >= minTrade) { a.qty = amt * (1 - a.cost) / bar.o; cash -= amt + gas; a.pos = { t, entry: bar.o, stop: bar.o - p.atrK * a.ind.a[i - 1], hi: bar.o, usdIn: amt + gas }; }
+      }
+      for (const [s] of here) if (A[s].pending) A[s].pending = null;
+      // 2) Mum içi stop, 3) kapanışta iz süren stop ve sinyaller
+      let any = false;
+      for (const [s, i] of here) {
+        const a = A[s], bar = a.b[i];
+        if (a.pos && bar.l <= a.pos.stop) { closeAt(s, t, Math.min(bar.o, a.pos.stop), 'stop'); a.cool = k + p.cooldown; }
+        if (a.pos) {
+          any = true; a.bars++;
+          if (bar.c > a.pos.hi) a.pos.hi = bar.c;
+          const ns = a.pos.hi - p.atrK * a.ind.a[i]; if (ns > a.pos.stop) a.pos.stop = ns;
+          if (trendBroken(i, a.ind)) a.pending = 'sell';
+        } else if (k >= a.cool && entryOK(i, a.b, a.ind)) { a.pending = 'buy'; a.strength = (bar.c - a.ind.d[i]) / a.ind.a[i]; }
+        a.last = bar.c;
+      }
+      if (any) barsIn++;
+      let v = cash, hold = 0; for (const s of names) { v += A[s].qty * A[s].last; hold += capital / names.length * A[s].last / p0[s]; }
+      eq.push({ t, v }); bh.push({ t, v: hold });
+    }
+    const n = eq.length, years = n / (BARS_PER_YEAR[p.tf] || 2190), ret = eq[n - 1].v / capital - 1, bhRet = bh[n - 1].v / capital - 1;
+    let mean = 0, sd = 0; const rets = []; for (let i = 1; i < n; i++) rets.push(eq[i].v / eq[i - 1].v - 1);
+    for (const r of rets) mean += r; mean /= rets.length || 1; for (const r of rets) sd += (r - mean) ** 2; sd = Math.sqrt(sd / (rets.length || 1));
+    const wins = trades.filter(x => x.pnl > 0), gw = wins.reduce((s, x) => s + x.pnl, 0), gl = trades.filter(x => x.pnl <= 0).reduce((s, x) => s - x.pnl, 0);
+    const mid = Math.floor(n / 2), half = (ser, a, z) => ser[z].v / ser[a].v - 1;
+    trades.sort((x, y) => x.tOut - y.tOut);
+    return { eq, bh, trades, syms: names,
+      perAsset: names.map(s => ({ sym: s, n: A[s].n, wins: A[s].wins, pnl: A[s].pnl, open: !!A[s].pos })),
+      stats: { years, ret, bhRet, cagr: years > 0 ? Math.pow(1 + ret, 1 / years) - 1 : 0, bhCagr: years > 0 ? Math.pow(Math.max(0, 1 + bhRet), 1 / years) - 1 : 0,
+        maxDD: maxDrawdown(eq), bhMaxDD: maxDrawdown(bh), sharpe: sd > 0 ? mean / sd * Math.sqrt(BARS_PER_YEAR[p.tf] || 2190) : 0,
+        nTrades: trades.length, winRate: trades.length ? wins.length / trades.length : 0, profitFactor: gl > 0 ? gw / gl : (gw > 0 ? Infinity : 0),
+        exposure: barsIn / n, h1: half(eq, 0, mid), h2: half(eq, mid, n - 1), bhH1: half(bh, 0, mid), bhH2: half(bh, mid, n - 1), openPos: names.some(s => A[s].pos) } };
+  }
+
+  return { TF_MS, BARS_PER_YEAR, ema, atr, donchianHigh, indicators, ready, trendUp, entryOK, trendBroken, posFraction, maxDrawdown, backtest, backtestPortfolio };
 })();
 if (typeof module !== 'undefined') module.exports = Engine;

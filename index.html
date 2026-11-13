@@ -70,6 +70,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
 .seg button{border:0;border-radius:0;min-height:40px;padding:10px 14px;background:transparent;color:var(--ink2)}
 .seg button.on{background:var(--ink);color:var(--bg)}
+#tblScan tbody tr{cursor:pointer}
+#tblScan tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.pill{display:inline-block;white-space:nowrap;font-size:12.5px;font-weight:600;padding:2px 8px;border-radius:999px;border:1.5px solid var(--line);color:var(--ink2)}
+.pill.up{border-color:var(--gain);color:var(--gain)}
+label.chip{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-weight:600;min-height:44px}
+label.chip input{width:18px;height:18px}
 
 .note{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:14px;margin:10px 0}
 .err{color:var(--loss);font-size:14px;margin:8px 0 0}
@@ -116,7 +122,7 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Trend Botu<small>ETH/USDC, Arbitrum One</small></div>
+    <div class="brand">Trend Botu<small id="brandSub">Arbitrum One</small></div>
     <span class="badge" id="modeBadge">Simülasyon</span>
   </header>
 
@@ -140,8 +146,8 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
       <p class="sub" id="srvSub"></p>
       <div class="figs" style="margin:0 0 10px">
         <div class="fig"><span>Toplam değer</span><b class="num" id="sEq">–</b></div>
-        <div class="fig"><span>ETH pozisyonu</span><b class="num" id="sPos">–</b></div>
-        <div class="fig"><span>Stop seviyesi</span><b class="num" id="sStop">–</b></div>
+        <div class="fig"><span>Açık pozisyon</span><b class="num" id="sPos">–</b></div>
+        <div class="fig"><span>Nakit</span><b class="num" id="sCash">–</b></div>
         <div class="fig"><span>Son kayıt</span><b class="num" id="sAt" style="font-size:16px">–</b></div>
       </div>
       <div id="srvEv" class="empty" style="max-height:150px;overflow:auto"></div>
@@ -150,14 +156,20 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
     <div class="figs">
       <div class="fig"><span>Toplam değer</span><b class="num" id="fEq">–</b></div>
       <div class="fig"><span>Bugün</span><b class="num" id="fDay">–</b></div>
-      <div class="fig"><span>ETH pozisyonu</span><b class="num" id="fPos">–</b></div>
-      <div class="fig"><span>Stop seviyesi</span><b class="num" id="fStop">–</b></div>
+      <div class="fig"><span>Açık pozisyon</span><b class="num" id="fPos">–</b></div>
+      <div class="fig"><span>Nakit</span><b class="num" id="fCash">–</b></div>
     </div>
     <div class="panel">
-      <h2>ETH fiyatı ve trend</h2>
+      <h2>Piyasa taraması</h2>
+      <p class="sub">Bot bu varlıkları her turda tarar. Trendi yukarı olan ve yeni zirve yapan varlıkta alım yapar.</p>
+      <div class="scroll"><table id="tblScan"><thead><tr><th>Varlık</th><th>Fiyat</th><th>Trend</th><th>Durum</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="panel">
+      <h2 id="chartTitle">Fiyat ve trend</h2>
       <p class="sub" id="chartSub">Son 200 mum.</p>
+      <div class="seg" id="chartSeg" role="group" aria-label="Grafikteki varlık" style="margin-bottom:8px;flex-wrap:wrap"></div>
       <div class="legend" id="lgPrice"></div>
-      <div class="chartbox"><canvas class="chart" id="cvPrice" role="img" aria-label="ETH fiyatı, hızlı ve yavaş ortalama"></canvas><div class="tip" id="tipPrice"></div></div>
+      <div class="chartbox"><canvas class="chart" id="cvPrice" role="img" aria-label="Seçili varlığın fiyatı, hızlı ve yavaş ortalaması"></canvas><div class="tip" id="tipPrice"></div></div>
     </div>
     <div class="panel">
       <h2>İşlem günlüğü</h2>
@@ -172,7 +184,7 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
   <section class="tab" id="tab-test">
     <div class="state" style="padding-bottom:8px">
       <h1 style="font-size:clamp(26px,7vw,40px)">Bu kurallar geçmişte ne yapardı?</h1>
-      <p>Gerçek ETH fiyat geçmişi üzerinde, işlem ücreti ve kayma dahil. Geçmiş sonuç gelecek için garanti değildir; ayarları geçmişe uydurmak sonucu olduğundan iyi gösterir.</p>
+      <p>Seçili varlıkların gerçek fiyat geçmişi üzerinde, ortak sermayeyle, işlem ücreti ve kayma dahil. Geçmiş sonuç gelecek için garanti değildir; ayarları geçmişe uydurmak sonucu olduğundan iyi gösterir.</p>
     </div>
     <div class="row" style="margin:8px 0 16px">
       <button class="primary" id="btnBt">Testi çalıştır</button>
@@ -184,9 +196,9 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
     <div id="btOut" style="display:none">
       <div class="figs">
         <div class="fig"><span>Strateji getirisi</span><b class="num" id="bRet">–</b></div>
-        <div class="fig"><span>Al ve tut getirisi</span><b class="num" id="bBh">–</b></div>
+        <div class="fig"><span>Sepeti al ve tut</span><b class="num" id="bBh">–</b></div>
         <div class="fig"><span>En büyük düşüş</span><b class="num" id="bDD">–</b></div>
-        <div class="fig"><span>Al ve tut düşüşü</span><b class="num" id="bBhDD">–</b></div>
+        <div class="fig"><span>Sepetin düşüşü</span><b class="num" id="bBhDD">–</b></div>
       </div>
       <div class="note" id="btVerdict"></div>
       <div class="panel">
@@ -197,8 +209,10 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
       <div class="panel">
         <h2>Ayrıntılar</h2>
         <div class="scroll"><table id="tblStats"><tbody></tbody></table></div>
+        <h3>Varlık başına</h3>
+        <div class="scroll"><table id="tblAssets"><thead><tr><th>Varlık</th><th>İşlem</th><th>Kazanan</th><th>Kâr/zarar</th></tr></thead><tbody></tbody></table></div>
         <h3>İşlemler</h3>
-        <div class="scroll" style="max-height:320px;overflow-y:auto"><table id="tblBt"><thead><tr><th>Giriş</th><th>Çıkış</th><th>Alış</th><th>Satış</th><th>Kâr/zarar</th><th>Neden</th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll" style="max-height:320px;overflow-y:auto"><table id="tblBt"><thead><tr><th>Varlık</th><th>Giriş</th><th>Çıkış</th><th>Kâr/zarar</th><th>Neden</th></tr></thead><tbody></tbody></table></div>
       </div>
     </div>
   </section>
@@ -207,7 +221,7 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
   <section class="tab" id="tab-cuzdan">
     <div class="state" style="padding-bottom:8px">
       <h1 style="font-size:clamp(26px,7vw,40px)">Gerçek para için altı adım</h1>
-      <p>Bot, MetaMask hesabına hiç dokunmaz. Yalnızca kendi ayrı cüzdanına yatırdığın tutarla işlem yapar; kaybedebileceğin en fazla tutar budur.</p>
+      <p>Bot, MetaMask hesabına dokunmaz. Yalnızca kendi ayrı cüzdanına yatırdığın tutarla işlem yapar; kaybedebileceğin en fazla tutar budur.</p>
     </div>
     <div class="panel">
       <ol class="steps">
@@ -225,7 +239,7 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
           <div class="err" id="e2"></div></li>
         <li id="st3"><h3>Para yatır</h3>
           <p>İşlem için USDC, ağ ücreti için az miktarda ETH. Küçük başla.</p>
-          <div class="bal" id="botBal"><span>USDC <b class="num" id="bU">–</b></span><span>WETH <b class="num" id="bW">–</b></span><span>ETH (ücret) <b class="num" id="bE">–</b></span></div>
+          <div class="bal" id="botBal"><span>USDC <b class="num" id="bU">–</b></span><span>ETH (ücret) <b class="num" id="bE">–</b></span><span id="bTok"></span></div>
           <div class="form">
             <label class="f">USDC tutarı<input type="number" id="depU" inputmode="decimal" min="0" step="1" value="20"></label>
             <label class="f">ETH tutarı (ücret için)<input type="number" id="depE" inputmode="decimal" min="0" step="0.0001" value="0.001"></label>
@@ -236,11 +250,11 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
           </div>
           <div class="err" id="e3"></div></li>
         <li id="st4"><h3>Ön kontrol</h3>
-          <p>Ağ, token ve borsa sözleşmeleri zincir üzerinde doğrulanır; borsa fiyatı piyasa fiyatıyla karşılaştırılır.</p>
+          <p>Ağ ve borsa sözleşmeleri, sonra her varlığın token sözleşmesi ve borsa fiyatı zincir üzerinde doğrulanır. Kontrolü geçmeyen varlıkta işlem yapılmaz.</p>
           <button id="btnPre" disabled>Ön kontrolü çalıştır</button>
           <div id="preOut" style="font-size:14px;margin-top:8px"></div></li>
-        <li id="st5"><h3>1 USDC ile test işlemi</h3>
-          <p>Bot cüzdanı 1 USDC'lik ETH alır ve hemen geri satar. Zincirde gerçekten çalıştığını ve gidiş-dönüş maliyetini görürsün.</p>
+        <li id="st5"><h3>Her varlık için 1 USDC ile test işlemi</h3>
+          <p>Bot cüzdanı her varlıktan 1 USDC'lik alır ve hemen geri satar. Zincirde gerçekten çalıştığını ve her varlığın gidiş-dönüş maliyetini görürsün. Testi geçmeyen varlıkta işlem yapılmaz.</p>
           <button id="btnTest" disabled>Test işlemini yap</button>
           <div id="testOut" style="font-size:14px;margin-top:8px"></div></li>
         <li id="st6"><h3>Gerçek para modunu aç</h3>
@@ -258,7 +272,8 @@ nav.tabs button.on{color:var(--ink);border-top-color:var(--accent)}
       <h1 style="font-size:clamp(26px,7vw,40px)">Kurallar ve güvenlik frenleri</h1>
       <p>Değiştirdiğin her ayarı önce geçmiş testinde dene. Bot çalışırken yapılan değişiklik bir sonraki kontrolde geçerli olur.</p>
     </div>
-    <div class="panel"><h2>Strateji</h2><p class="sub">Trend yukarıyken ve fiyat yeni zirve yaptığında alır; trend bozulunca ya da iz süren stop çalışınca satar. Düşen piyasada nakitte bekler.</p><div class="form" id="formStrat"></div></div>
+    <div class="panel"><h2>Taranan varlıklar</h2><p class="sub">Yalnızca Arbitrum'da yeterli işlem hacmi olan, adresi doğrulanmış varlıklar listelenir.</p><div id="assetBox" class="row"></div></div>
+    <div class="panel"><h2>Strateji</h2><p class="sub">Her varlıkta aynı kural: trend yukarıyken ve fiyat yeni zirve yaptığında alır; trend bozulunca ya da iz süren stop çalışınca satar. Düşen piyasada nakitte bekler.</p><div class="form" id="formStrat"></div></div>
     <div class="panel"><h2>Güvenlik frenleri</h2><p class="sub">Bu sınırlar strateji ne derse desin uygulanır.</p><div class="form" id="formRisk"></div></div>
     <div class="panel"><h2>Bağlantı ve simülasyon</h2><div class="form" id="formMisc"></div>
       <div class="row" style="margin-top:14px"><button id="btnDefaults">Varsayılanlara dön</button><button id="btnResetPaper">Simülasyonu sıfırla</button></div></div>
@@ -435,11 +450,375 @@ const Engine = (() => {
     };
   }
 
-  return { TF_MS, BARS_PER_YEAR, ema, atr, donchianHigh, indicators, ready, trendUp, entryOK, trendBroken, posFraction, maxDrawdown, backtest };
+  /* Portföy geçmiş testi: aynı kurallar her varlığa ayrı ayrı uygulanır, sermaye ortaktır.
+     data = { SEMBOL: mumlar }, p.fees = { SEMBOL: tek yön borsa ücreti % }, p.maxPositions = aynı anda en çok pozisyon. */
+  function backtestPortfolio(data, p) {
+    const syms = Object.keys(data).filter(s => data[s] && data[s].length > p.emaSlow + p.don + 5);
+    if (!syms.length) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
+    const gas = p.gasUsd, capital = p.capital || 1000, minTrade = p.minTradeUsd || 5, maxPos = p.maxPositions || syms.length;
+    const A = {}, tset = new Set(); let start = -Infinity;
+    for (const s of syms) {
+      const b = data[s], ind = indicators(b, p), map = new Map(); b.forEach((x, i) => { map.set(x.t, i); tset.add(x.t); });
+      let r = 0; while (r < b.length && !ready(r, ind)) r++;
+      if (r >= b.length - 2) continue;
+      A[s] = { b, ind, map, cost: ((p.fees && p.fees[s] != null ? p.fees[s] : p.feePct || 0.05) + p.slipPct) / 100, qty: 0, pos: null, pending: null, strength: 0, cool: -Infinity, last: b[r].c, n: 0, pnl: 0, wins: 0, bars: 0 };
+      if (b[r].t > start) start = b[r].t;
+    }
+    const names = Object.keys(A); if (!names.length) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
+    const times = [...tset].filter(t => t >= start).sort((x, y) => x - y);
+    if (times.length < 3) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
+    let cash = capital, barsIn = 0; const eq = [], bh = [], trades = [], p0 = {};
+    for (const s of names) { const i = A[s].map.get(times[0]); p0[s] = i != null ? A[s].b[i].c : A[s].last; }
+    const closeAt = (s, t, px, reason) => {
+      const a = A[s], out = a.qty * px * (1 - a.cost) - gas, pnl = out - a.pos.usdIn; cash += out;
+      trades.push({ sym: s, tIn: a.pos.t, tOut: t, entry: a.pos.entry, exit: px, usdIn: a.pos.usdIn, usdOut: out, pnl, reason });
+      a.n++; a.pnl += pnl; if (pnl > 0) a.wins++; a.qty = 0; a.pos = null;
+    };
+    for (let k = 0; k < times.length; k++) {
+      const t = times[k], here = [];
+      for (const s of names) { const i = A[s].map.get(t); if (i != null) here.push([s, i]); }
+      // 1) Açılışta bekleyen satışlar, sonra (güçlüden zayıfa) bekleyen alımlar
+      for (const [s, i] of here) { const a = A[s]; if (a.pending === 'sell' && a.pos) { closeAt(s, t, a.b[i].o, 'trend'); a.pending = null; } }
+      const buys = here.filter(([s]) => A[s].pending === 'buy' && !A[s].pos).sort((x, y) => A[y[0]].strength - A[x[0]].strength);
+      for (const [s, i] of buys) {
+        const a = A[s], bar = a.b[i]; a.pending = null;
+        if (names.filter(n => A[n].pos).length >= maxPos) continue;
+        let eqNow = cash; for (const n of names) if (A[n].qty) eqNow += A[n].qty * A[n].last;
+        const amt = Math.min(cash - gas, eqNow * posFraction(bar.o, a.ind.a[i - 1], p));
+        if (amt >= minTrade) { a.qty = amt * (1 - a.cost) / bar.o; cash -= amt + gas; a.pos = { t, entry: bar.o, stop: bar.o - p.atrK * a.ind.a[i - 1], hi: bar.o, usdIn: amt + gas }; }
+      }
+      for (const [s] of here) if (A[s].pending) A[s].pending = null;
+      // 2) Mum içi stop, 3) kapanışta iz süren stop ve sinyaller
+      let any = false;
+      for (const [s, i] of here) {
+        const a = A[s], bar = a.b[i];
+        if (a.pos && bar.l <= a.pos.stop) { closeAt(s, t, Math.min(bar.o, a.pos.stop), 'stop'); a.cool = k + p.cooldown; }
+        if (a.pos) {
+          any = true; a.bars++;
+          if (bar.c > a.pos.hi) a.pos.hi = bar.c;
+          const ns = a.pos.hi - p.atrK * a.ind.a[i]; if (ns > a.pos.stop) a.pos.stop = ns;
+          if (trendBroken(i, a.ind)) a.pending = 'sell';
+        } else if (k >= a.cool && entryOK(i, a.b, a.ind)) { a.pending = 'buy'; a.strength = (bar.c - a.ind.d[i]) / a.ind.a[i]; }
+        a.last = bar.c;
+      }
+      if (any) barsIn++;
+      let v = cash, hold = 0; for (const s of names) { v += A[s].qty * A[s].last; hold += capital / names.length * A[s].last / p0[s]; }
+      eq.push({ t, v }); bh.push({ t, v: hold });
+    }
+    const n = eq.length, years = n / (BARS_PER_YEAR[p.tf] || 2190), ret = eq[n - 1].v / capital - 1, bhRet = bh[n - 1].v / capital - 1;
+    let mean = 0, sd = 0; const rets = []; for (let i = 1; i < n; i++) rets.push(eq[i].v / eq[i - 1].v - 1);
+    for (const r of rets) mean += r; mean /= rets.length || 1; for (const r of rets) sd += (r - mean) ** 2; sd = Math.sqrt(sd / (rets.length || 1));
+    const wins = trades.filter(x => x.pnl > 0), gw = wins.reduce((s, x) => s + x.pnl, 0), gl = trades.filter(x => x.pnl <= 0).reduce((s, x) => s - x.pnl, 0);
+    const mid = Math.floor(n / 2), half = (ser, a, z) => ser[z].v / ser[a].v - 1;
+    trades.sort((x, y) => x.tOut - y.tOut);
+    return { eq, bh, trades, syms: names,
+      perAsset: names.map(s => ({ sym: s, n: A[s].n, wins: A[s].wins, pnl: A[s].pnl, open: !!A[s].pos })),
+      stats: { years, ret, bhRet, cagr: years > 0 ? Math.pow(1 + ret, 1 / years) - 1 : 0, bhCagr: years > 0 ? Math.pow(Math.max(0, 1 + bhRet), 1 / years) - 1 : 0,
+        maxDD: maxDrawdown(eq), bhMaxDD: maxDrawdown(bh), sharpe: sd > 0 ? mean / sd * Math.sqrt(BARS_PER_YEAR[p.tf] || 2190) : 0,
+        nTrades: trades.length, winRate: trades.length ? wins.length / trades.length : 0, profitFactor: gl > 0 ? gw / gl : (gw > 0 ? Infinity : 0),
+        exposure: barsIn / n, h1: half(eq, 0, mid), h2: half(eq, mid, n - 1), bhH1: half(bh, 0, mid), bhH2: half(bh, mid, n - 1), openPos: names.some(s => A[s].pos) } };
+  }
+
+  return { TF_MS, BARS_PER_YEAR, ema, atr, donchianHigh, indicators, ready, trendUp, entryOK, trendBroken, posFraction, maxDrawdown, backtest, backtestPortfolio };
 })();
 if (typeof module !== 'undefined') module.exports = Engine;
 </script>
-<script>/* Trend Botu uygulaması: veri, simülasyon, MetaMask + bot cüzdanı, Uniswap v3 işlemleri, arayüz. */
+<script>/* Ortak çekirdek: varlık listesi, fiyat verisi, karar adımı, Uniswap v3 işlemleri.
+   Tarayıcı paneli ve sunucu botu aynı dosyayı kullanır; ethers ve fetch dışarıdan verilir. */
+const Core = (() => {
+  const Eng = typeof Engine !== 'undefined' ? Engine : require('./engine.js');
+
+  /* Arbitrum One adresleri (küçük harf). Kaynaklar: Uniswap, Circle, Chainlink ve Arbitrum belgeleri.
+     Ön kontrol her birinin sembolünü, ondalığını ve borsa fiyatını zincirde ayrıca doğrular.
+     fee: USDC ile arasındaki tipik tek yön havuz ücreti (%); simülasyon ve geçmiş testi maliyeti için. */
+  const USDC = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+  const WETH = '0x82af49447d8a07e3bd95bd0d56f35241523fbab1';
+  const ROUTER = '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45';   // Uniswap v3 SwapRouter02
+  const QUOTER = '0x61ffe014ba17989e743c5f6cb21bf9697530b21e';   // Uniswap v3 QuoterV2
+  const ASSETS = [
+    { sym: 'ETH', token: 'WETH', addr: WETH, dec: 18, bin: 'ETHUSDT', kr: 'ETHUSD', fee: 0.05 },
+    { sym: 'BTC', token: 'WBTC', addr: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f', dec: 8, bin: 'BTCUSDT', kr: 'XBTUSD', fee: 0.10 },
+    { sym: 'ARB', token: 'ARB', addr: '0x912ce59144191c1204e64559fe8253a0e49e6548', dec: 18, bin: 'ARBUSDT', kr: 'ARBUSD', fee: 0.10 },
+    { sym: 'LINK', token: 'LINK', addr: '0xf97f4df75117a78c1a5a0dbb814af92458539fb4', dec: 18, bin: 'LINKUSDT', kr: 'LINKUSD', fee: 0.35 },
+    { sym: 'GMX', token: 'GMX', addr: '0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a', dec: 18, bin: 'GMXUSDT', kr: 'GMXUSD', fee: 0.35 }
+  ];
+  const bySym = Object.fromEntries(ASSETS.map(a => [a.sym, a]));
+  const FEES = Object.fromEntries(ASSETS.map(a => [a.sym, a.fee]));
+  const FEE_TIERS = [500, 3000, 10000], MIN_GAS_ETH = 0.00005, DEFAULT_RPC = 'https://arb1.arbitrum.io/rpc';
+  const ERC20_ABI = ['function balanceOf(address) view returns (uint256)', 'function decimals() view returns (uint8)', 'function symbol() view returns (string)', 'function allowance(address,address) view returns (uint256)', 'function approve(address,uint256) returns (bool)', 'function transfer(address,uint256) returns (bool)'];
+  const QUOTER_ABI = ['function quoteExactInput(bytes path, uint256 amountIn) returns (uint256 amountOut, uint160[] sqrtPriceX96AfterList, uint32[] initializedTicksCrossedList, uint256 gasEstimate)'];
+  const ROUTER_ABI = ['function exactInput((bytes path,address recipient,uint256 amountIn,uint256 amountOutMinimum) params) payable returns (uint256 amountOut)', 'function multicall(uint256 deadline, bytes[] data) payable returns (bytes[])'];
+
+  const DEFAULTS = {
+    tf: '4h', emaFast: 50, emaSlow: 200, don: 20, atrN: 14, atrK: 3, riskPct: 2, maxPosPct: 34, maxPositions: 3, cooldown: 3,
+    assets: ['ETH', 'BTC', 'ARB', 'LINK', 'GMX'],
+    dailyLossPct: 3, maxDDPct: 15, maxSlipPct: 0.3, maxDevPct: 1, minTradeUsd: 5,
+    rpc: DEFAULT_RPC, paperCash: 1000, slipPct: 0.05, gasUsd: 0.1
+  };
+  const freshRT = () => ({ halted: null, positions: {}, barT: {}, cool: {}, lastPx: {}, peakEq: null, dayKey: null, dayStartEq: null, errCount: 0 });
+  // Eski tek varlıklı kayıtları yeni biçime taşır
+  function migrateRT(R) {
+    R.positions = R.positions || {}; R.barT = R.barT || {}; R.cool = R.cool || {}; R.lastPx = R.lastPx || {};
+    if (R.pos) { R.positions.ETH = R.pos; } delete R.pos;
+    if (R.lastBarT) { R.barT.ETH = R.lastBarT; } delete R.lastBarT;
+    if (R.cooldownUntilT) { R.cool.ETH = R.cooldownUntilT; } delete R.cooldownUntilT;
+    return R;
+  }
+  const enabled = S => ASSETS.filter(a => (S.assets || []).includes(a.sym));
+  const errMsg = e => {
+    if (!e) return 'Bilinmeyen hata';
+    if (e.code === 4001 || e.code === 'ACTION_REJECTED') return 'İşlem MetaMask\'ta reddedildi.';
+    return String(e.shortMessage || e.reason || e.message || e).slice(0, 220);
+  };
+  const usd2 = v => '$' + Number(v).toFixed(2);
+
+  /* ---------- Fiyat verisi ---------- */
+  async function getJSON(fetch, url) {
+    const c = new AbortController(), to = setTimeout(() => c.abort(), 12000);
+    try { const r = await fetch(url, { signal: c.signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+    finally { clearTimeout(to); }
+  }
+  function checkBars(b, min) {
+    if (!Array.isArray(b) || b.length < (min || 50)) throw new Error('Fiyat verisi eksik');
+    for (let i = 0; i < b.length; i++) { const x = b[i]; if (!(x.o > 0 && x.h > 0 && x.l > 0 && x.c > 0) || x.h < x.l || (i && x.t <= b[i - 1].t)) throw new Error('Fiyat verisi bozuk'); }
+    return b;
+  }
+  async function binance(fetch, a, tf, limit, endTime) {
+    let err;
+    for (const h of ['https://data-api.binance.vision', 'https://api.binance.com']) {
+      try { const rows = await getJSON(fetch, `${h}/api/v3/klines?symbol=${a.bin}&interval=${tf}&limit=${limit}${endTime ? '&endTime=' + endTime : ''}`); return rows.map(r => ({ t: r[0], o: +r[1], h: +r[2], l: +r[3], c: +r[4] })); }
+      catch (e) { err = e; }
+    }
+    throw err;
+  }
+  async function kraken(fetch, a, tf) {
+    const j = await getJSON(fetch, `https://api.kraken.com/0/public/OHLC?pair=${a.kr}&interval=${{ '1h': 60, '4h': 240, '1d': 1440 }[tf]}`);
+    if (j.error && j.error.length) throw new Error(j.error[0]);
+    const k = Object.keys(j.result).find(x => x !== 'last');
+    return j.result[k].map(r => ({ t: r[0] * 1000, o: +r[1], h: +r[2], l: +r[3], c: +r[4] }));
+  }
+  async function fetchRecent(fetch, a, tf) {
+    try { return { feed: 'Binance', bars: checkBars(await binance(fetch, a, tf, 500)) }; }
+    catch (e) { return { feed: 'Kraken', bars: checkBars(await kraken(fetch, a, tf)) }; }
+  }
+  // Seçili tüm varlıklar için güncel piyasa: { mkt: {SEMBOL: {closed, live, ind}}, errs, feed }
+  async function fetchMarket(fetch, S, now, extraSyms) {
+    const tfMs = Eng.TF_MS[S.tf], mkt = {}, errs = {}; let feed = '';
+    const list = ASSETS.filter(a => (S.assets || []).includes(a.sym) || (extraSyms || []).includes(a.sym));
+    await Promise.all(list.map(async a => {
+      try {
+        const r = await fetchRecent(fetch, a, S.tf), bars = r.bars;
+        if (now - bars[bars.length - 1].t > 2 * tfMs) throw new Error('Fiyat verisi güncel değil');
+        const closed = bars.filter(b => b.t + tfMs <= now);
+        mkt[a.sym] = { closed, live: bars[bars.length - 1].c, ind: Eng.indicators(closed, S) }; feed = feed || r.feed;
+      } catch (e) { errs[a.sym] = errMsg(e); }
+    }));
+    return { mkt, errs, feed };
+  }
+  async function fetchHistory(fetch, a, tf, bars, onProg) {
+    let out = [], end;
+    try {
+      while (out.length < bars) {
+        const page = await binance(fetch, a, tf, 1000, end);
+        if (!page.length) break;
+        out = page.concat(out); end = page[0].t - 1; if (onProg) onProg(Math.min(1, out.length / bars));
+        if (page.length < 1000) break;
+      }
+    } catch (e) { if (!out.length) out = await kraken(fetch, a, tf); }
+    const tfMs = Eng.TF_MS[tf];
+    return checkBars(out.filter(b => b.t + tfMs <= Date.now()).slice(-bars), 10);
+  }
+
+  /* ---------- Simülasyon hesabı ---------- */
+  function paperAdapter(P, S) {
+    P.tok = P.tok || {};
+    const cost = s => (bySym[s].fee + S.slipPct) / 100;
+    return {
+      async balances() { return { usdc: P.usdc, tok: Object.assign({}, P.tok), eth: null }; },
+      async buy(s, amt, ref) { const qty = amt * (1 - cost(s)) / ref; P.usdc -= amt + S.gasUsd; P.tok[s] = (P.tok[s] || 0) + qty; return { qty, price: amt / qty, usd: amt }; },
+      async sellAll(s, ref) { const qty = P.tok[s] || 0, out = qty * ref * (1 - cost(s)) - S.gasUsd; P.usdc += out; P.tok[s] = 0; return { qty, price: out / qty, usd: out }; }
+    };
+  }
+
+  /* ---------- Zincir: bot cüzdanı + Uniswap v3 ---------- */
+  function makeChain(E, bot, rpc) {
+    const tok = {}; for (const a of ASSETS) tok[a.sym] = new E.Contract(a.addr, ERC20_ABI, bot);
+    return { rpc, bot, c: { usdc: new E.Contract(USDC, ERC20_ABI, bot), router: new E.Contract(ROUTER, ROUTER_ABI, bot), quoter: new E.Contract(QUOTER, QUOTER_ABI, bot), tok } };
+  }
+  // USDC ile varlık arasındaki aday rotalar: doğrudan havuzlar ve WETH üzerinden iki adım
+  function routes(E, a, side) {
+    const out = [], pack = (toks, fees) => { const types = ['address'], vals = [toks[0]]; fees.forEach((f, i) => { types.push('uint24', 'address'); vals.push(f, toks[i + 1]); }); return E.solidityPacked(types, vals); };
+    for (const f of FEE_TIERS) out.push(side === 'buy' ? pack([USDC, a.addr], [f]) : pack([a.addr, USDC], [f]));
+    if (a.addr !== WETH) for (const f of FEE_TIERS) out.push(side === 'buy' ? pack([USDC, WETH, a.addr], [500, f]) : pack([a.addr, WETH, USDC], [f, 500]));
+    return out;
+  }
+  async function bestQuote(E, W, a, side, amountIn) {
+    const paths = routes(E, a, side);
+    const res = await Promise.allSettled(paths.map(p => W.c.quoter.quoteExactInput.staticCall(p, amountIn)));
+    let best = null;
+    res.forEach((r, i) => { if (r.status === 'fulfilled' && r.value[0] > 0n && (!best || r.value[0] > best.out)) best = { out: r.value[0], path: paths[i] }; });
+    if (!best) throw new Error(a.sym + ' için borsa teklif vermedi.');
+    return best;
+  }
+  const impliedPrice = (E, a, side, usdcAmt, tokAmt) => +E.formatUnits(usdcAmt, 6) / +E.formatUnits(tokAmt, a.dec);
+  async function swap(E, W, S, a, side, amountIn, ref) {
+    const me = W.bot.address, c = W.c;
+    if (+E.formatUnits(await W.rpc.getBalance(me), 18) < MIN_GAS_ETH) throw new Error('Bot cüzdanında ağ ücreti için yeterli ETH yok.');
+    // 1) En iyi rotayı ve teklifi bul  2) Teklifi piyasa fiyatıyla karşılaştır
+    const q = await bestQuote(E, W, a, side, amountIn);
+    const implied = side === 'buy' ? impliedPrice(E, a, side, amountIn, q.out) : impliedPrice(E, a, side, q.out, amountIn);
+    const dev = Math.abs(implied / ref - 1) * 100;
+    if (!(dev <= S.maxDevPct)) throw new Error(`${a.sym}: borsa fiyatı piyasadan %${dev.toFixed(2)} sapıyor (sınır %${S.maxDevPct}). İşlem yapılmadı.`);
+    const minOut = q.out * (10000n - BigInt(Math.round(S.maxSlipPct * 100))) / 10000n;
+    // 3) Yalnızca gereken tutar kadar harcama izni
+    const tIn = side === 'buy' ? c.usdc : c.tok[a.sym], tOut = side === 'buy' ? c.tok[a.sym] : c.usdc;
+    if (await tIn.allowance(me, ROUTER) < amountIn) { const ap = await tIn.approve(ROUTER, amountIn); const ar = await ap.wait(); if (!ar || ar.status !== 1) throw new Error('Harcama izni işlemi başarısız.'); }
+    // 4) Önce zincirde dene (ücretsiz), sonra gönder. Süre sınırı: 2 dakika.
+    const before = await tOut.balanceOf(me);
+    const data = c.router.interface.encodeFunctionData('exactInput', [{ path: q.path, recipient: me, amountIn, amountOutMinimum: minOut }]);
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 120);
+    await c.router.multicall.staticCall(deadline, [data]);
+    const tx = await c.router.multicall(deadline, [data]);
+    const rc = await tx.wait();
+    if (!rc || rc.status !== 1) throw new Error('Takas işlemi zincirde başarısız oldu.');
+    const got = (await tOut.balanceOf(me)) - before;
+    if (got < minOut) throw new Error('Takas beklenenden az getirdi; bakiyeni kontrol et.');
+    return { got, hash: tx.hash };
+  }
+  async function chainBalances(E, W) {
+    const me = W.bot.address;
+    const [u, e, ...ts] = await Promise.all([W.c.usdc.balanceOf(me), W.rpc.getBalance(me)].concat(ASSETS.map(a => W.c.tok[a.sym].balanceOf(me))));
+    const tok = {}, raw = { usdc: u }; ASSETS.forEach((a, i) => { tok[a.sym] = +E.formatUnits(ts[i], a.dec); raw[a.sym] = ts[i]; });
+    return { usdc: +E.formatUnits(u, 6), eth: +E.formatUnits(e, 18), tok, raw };
+  }
+  function liveAdapter(E, W, S) {
+    return {
+      balances: () => chainBalances(E, W),
+      async buy(s, amt, ref) { const a = bySym[s], r = await swap(E, W, S, a, 'buy', E.parseUnits(amt.toFixed(6), 6), ref); const qty = +E.formatUnits(r.got, a.dec); return { qty, price: amt / qty, usd: amt, hash: r.hash }; },
+      async sellRaw(s, raw, ref) { const a = bySym[s], r = await swap(E, W, S, a, 'sell', raw, ref); const qty = +E.formatUnits(raw, a.dec), out = +E.formatUnits(r.got, 6); return { qty, price: out / qty, usd: out, hash: r.hash, got: r.got }; },
+      async sellAll(s, ref) { const b = await chainBalances(E, W); return this.sellRaw(s, b.raw[s], ref); }
+    };
+  }
+  /* Ön kontrol. base: ağ ve USDC; assets: her varlık için sembol, ondalık ve borsa fiyatı.
+     Yalnızca kontrolü geçen varlıklarda alım yapılır. */
+  async function preflight(E, W, S, mkt) {
+    const base = [], assets = {}, chk = (ok, text) => base.push({ ok: !!ok, text });
+    try {
+      chk((await W.rpc.getNetwork()).chainId === 42161n, 'Ağ: Arbitrum One');
+      const [su, du, cr, cq] = await Promise.all([W.c.usdc.symbol(), W.c.usdc.decimals(), W.rpc.getCode(ROUTER), W.rpc.getCode(QUOTER)]);
+      chk(su === 'USDC' && Number(du) === 6, 'USDC sözleşmesi');
+      chk(cr.length > 2 && cq.length > 2, 'Uniswap v3 sözleşmeleri zincirde mevcut');
+    } catch (e) { chk(false, 'Kontrol tamamlanamadı: ' + errMsg(e)); }
+    await Promise.all(enabled(S).map(async a => {
+      try {
+        const m = mkt[a.sym]; if (!m) throw new Error('piyasa fiyatı yok');
+        const [sy, de] = await Promise.all([W.c.tok[a.sym].symbol(), W.c.tok[a.sym].decimals()]);
+        if (sy !== a.token || Number(de) !== a.dec) throw new Error(`sözleşme beklenenle uyuşmuyor (${sy}, ${de})`);
+        const q = await bestQuote(E, W, a, 'buy', 100000000n), px = impliedPrice(E, a, 'buy', 100000000n, q.out), dev = Math.abs(px / m.live - 1) * 100;
+        if (!(dev <= S.maxDevPct)) throw new Error(`borsa fiyatı ${usd2(px)}, piyasa ${usd2(m.live)} (fark %${dev.toFixed(2)})`);
+        assets[a.sym] = { ok: true, text: `borsa ${usd2(px)}, piyasa ${usd2(m.live)} (fark %${dev.toFixed(2)})` };
+      } catch (e) { assets[a.sym] = { ok: false, text: errMsg(e) }; }
+    }));
+    return { base, assets, baseOK: base.every(x => x.ok), tradeable: Object.keys(assets).filter(s => assets[s].ok) };
+  }
+
+  /* ---------- Karar adımı: her turda bir kez ---------- */
+  async function step(c) {
+    const { S, mkt, A, now, ev, logTrade } = c, R = migrateRT(c.R), tfMs = Eng.TF_MS[S.tf];
+    let bal = await A.balances();
+    for (const s in mkt) R.lastPx[s] = mkt[s].live;
+    const px = s => mkt[s] ? mkt[s].live : R.lastPx[s];
+    const equity = b => b.usdc + ASSETS.reduce((t, a) => t + (b.tok[a.sym] || 0) * (px(a.sym) || 0), 0);
+    const eq = equity(bal);
+    // Cüzdandaki varlıklarla kayıtlı pozisyonları eşle
+    for (const a of ASSETS) {
+      const s = a.sym, q = bal.tok[s] || 0, p = px(s), held = p > 0 && q * p >= 1, m = mkt[s];
+      if (!held && R.positions[s] && p > 0) delete R.positions[s];
+      if (held && !R.positions[s] && m && Eng.ready(m.closed.length - 1, m.ind)) {
+        R.positions[s] = { qty: q, entry: m.live, stop: m.live - S.atrK * m.ind.a[m.closed.length - 1], hi: m.live, t: now };
+        ev(`Cüzdanda ${s} bulundu; pozisyon olarak devralındı, stop ${usd2(R.positions[s].stop)}.`);
+      }
+      if (R.positions[s]) R.positions[s].qty = q;
+    }
+    const dk = new Date(now).toISOString().slice(0, 10);
+    if (R.dayKey !== dk || R.dayStartEq == null) { R.dayKey = dk; R.dayStartEq = eq; if (R.halted && R.halted.kind === 'day') { R.halted = null; ev('Yeni gün: günlük zarar freni kalktı.'); } }
+    if (R.peakEq == null || eq > R.peakEq) R.peakEq = eq;
+    const view = () => ({ bal, eq: equity(bal) });
+    if (!c.active) return view();
+
+    const errors = [];
+    const exit = async (s, reason) => {
+      const pos = R.positions[s], m = mkt[s]; if (!pos) return;
+      if (!m) throw new Error(s + ' için fiyat verisi yok; satış yapılamadı.');
+      const r = await A.sellAll(s, m.live);
+      logTrade({ sym: s, side: 'Satış', qty: r.qty, price: r.price, usd: r.usd, reason, hash: r.hash, pnl: pos.usdIn != null ? r.usd - pos.usdIn : null });
+      ev(`Satıldı: ${r.qty.toFixed(4)} ${s}, ${usd2(r.price)} fiyattan (${reason}).`);
+      delete R.positions[s]; bal = await A.balances();
+    };
+    const exitAll = async reason => { for (const s of Object.keys(R.positions)) { try { await exit(s, reason); } catch (e) { errors.push(e); } } };
+    const done = () => { if (errors.length) throw errors[0]; return view(); };
+
+    // Güvenlik frenleri her şeyden önce gelir. Fren devredeyken kalan pozisyon varsa kapatmayı yeniden dener.
+    if (R.halted && (R.halted.kind === 'day' || R.halted.kind === 'dd')) { await exitAll(R.halted.kind === 'day' ? 'günlük zarar sınırı' : 'zirveden düşüş sınırı'); return done(); }
+    if (!R.halted) {
+      if (R.dayStartEq > 0 && eq <= R.dayStartEq * (1 - S.dailyLossPct / 100)) {
+        R.halted = { kind: 'day', reason: `Bugünkü zarar %${S.dailyLossPct} sınırını aştı. Bot yarın (UTC gece yarısı) kendiliğinden devam eder.` }; ev('Günlük zarar freni devreye girdi.', true);
+        await exitAll('günlük zarar sınırı'); return done();
+      }
+      if (R.peakEq > 0 && eq <= R.peakEq * (1 - S.maxDDPct / 100)) {
+        R.halted = { kind: 'dd', reason: `Hesap zirvesinden %${S.maxDDPct} düştü. Bot, fren kaldırılana kadar işlem yapmaz.` }; ev('Zirveden düşüş freni devreye girdi.', true);
+        await exitAll('zirveden düşüş sınırı'); return done();
+      }
+    }
+    // Açık pozisyonlar: stop, iz süren stop, trend çıkışı (hata freni devredeyken de çalışır)
+    for (const s of Object.keys(R.positions)) {
+      const pos = R.positions[s], m = mkt[s];
+      if (!m) { ev(`${s} fiyatı alınamadı; stop bu turda denetlenemedi.`, true); continue; }
+      const i = m.closed.length - 1;
+      try {
+        if (m.live <= pos.stop) { await exit(s, 'stop'); R.cool[s] = now + S.cooldown * tfMs; continue; }
+        if (!Eng.ready(i, m.ind)) continue;
+        if (m.closed[i].t !== R.barT[s]) { if (m.closed[i].c > pos.hi) pos.hi = m.closed[i].c; const ns = pos.hi - S.atrK * m.ind.a[i]; if (ns > pos.stop) pos.stop = ns; }
+        if (Eng.trendBroken(i, m.ind)) await exit(s, 'trend bozuldu');
+        R.barT[s] = m.closed[i].t;
+      } catch (e) { errors.push(e); }
+    }
+    // Tarama: yeni kapanan mumda trend + kırılım veren varlıklar, güçlüden zayıfa
+    if (!R.halted) {
+      const cands = [];
+      for (const a of enabled(S)) {
+        const s = a.sym, m = mkt[s]; if (R.positions[s] || !m) continue;
+        const i = m.closed.length - 1; if (!Eng.ready(i, m.ind) || m.closed[i].t === R.barT[s]) continue;
+        R.barT[s] = m.closed[i].t;
+        const fresh = now - (m.closed[i].t + tfMs) < tfMs * (c.freshPct || 15) / 100;   // bayat sinyalle alım yapma
+        if (!fresh || now < (R.cool[s] || 0) || !Eng.entryOK(i, m.closed, m.ind)) continue;
+        if (c.tradeable && !c.tradeable.includes(s)) { ev(`${s}: alım sinyali var ama ön kontrolü geçmediği için atlandı.`, true); continue; }
+        cands.push({ s, m, i, strength: (m.closed[i].c - m.ind.d[i]) / m.ind.a[i] });
+      }
+      cands.sort((x, y) => y.strength - x.strength);
+      for (const { s, m, i } of cands) {
+        if (Object.keys(R.positions).length >= S.maxPositions) { ev(`${s}: alım sinyali var ama pozisyon sınırı (${S.maxPositions}) dolu.`); continue; }
+        const amt = Math.floor(Math.min(bal.usdc * 0.998 - (c.paperGas || 0), equity(bal) * Eng.posFraction(m.live, m.ind.a[i], S)) * 100) / 100;
+        if (amt < S.minTradeUsd) { ev(`${s}: alım sinyali var ama tutar en küçük işlemin altında; atlandı.`); continue; }
+        try {
+          const r = await A.buy(s, amt, m.live);
+          R.positions[s] = { qty: r.qty, entry: r.price, stop: m.live - S.atrK * m.ind.a[i], hi: m.live, t: now, usdIn: r.usd };
+          logTrade({ sym: s, side: 'Alış', qty: r.qty, price: r.price, usd: r.usd, reason: 'trend + kırılım', hash: r.hash });
+          ev(`Alındı: ${r.qty.toFixed(4)} ${s}, ${usd2(r.price)} fiyattan. Stop ${usd2(R.positions[s].stop)}.`);
+          bal = await A.balances();
+        } catch (e) { ev(`${s} alımı yapılamadı: ${errMsg(e)}`, true); }
+      }
+    }
+    return done();
+  }
+
+  return { USDC, WETH, ROUTER, QUOTER, ASSETS, bySym, FEES, MIN_GAS_ETH, DEFAULT_RPC, ERC20_ABI, DEFAULTS, freshRT, migrateRT, enabled, errMsg,
+    fetchMarket, fetchHistory, paperAdapter, makeChain, bestQuote, swap, chainBalances, liveAdapter, preflight, step };
+})();
+if (typeof module !== 'undefined') module.exports = Core;
+</script>
+<script>/* Trend Botu paneli: arayüz, simülasyon, MetaMask + bot cüzdanı akışı.
+   Karar ve işlem mantığı core.js içindedir; sunucu botu da aynı dosyayı kullanır. */
 (() => {
 'use strict';
 const $ = id => document.getElementById(id);
@@ -447,44 +826,31 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('tb:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('tb:' + k, JSON.stringify(v)); } catch (e) {} }
 };
-
-/* ---------- Sabitler: Arbitrum One. Kaynak: Uniswap ve Circle resmî belgeleri; ön kontrol bunları zincirde ayrıca doğrular. ---------- */
+const { ASSETS, bySym, USDC, MIN_GAS_ETH, ERC20_ABI, errMsg } = Core;
 const CHAIN_ID = 42161n, CHAIN_HEX = '0xa4b1';
-const ADDR = {
-  USDC: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',     // Circle yerel USDC
-  WETH: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
-  ROUTER: '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45',   // Uniswap v3 SwapRouter02
-  QUOTER: '0x61fFE014bA17989E743c5F6cB21bF9697530B21e'    // Uniswap v3 QuoterV2
-};
-const POOL_FEE = 500; // %0,05 havuzu
-const ERC20_ABI = ['function balanceOf(address) view returns (uint256)', 'function decimals() view returns (uint8)', 'function symbol() view returns (string)', 'function allowance(address,address) view returns (uint256)', 'function approve(address,uint256) returns (bool)', 'function transfer(address,uint256) returns (bool)'];
-const QUOTER_ABI = ['function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,uint24 fee,uint160 sqrtPriceLimitX96) params) returns (uint256 amountOut,uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)'];
-const ROUTER_ABI = ['function exactInputSingle((address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96) params) payable returns (uint256 amountOut)', 'function multicall(uint256 deadline, bytes[] data) payable returns (bytes[])'];
 const ETHERS_URLS = ['https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js', 'https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js'];
-const MIN_GAS_ETH = 0.00005;
+const F = (...a) => window.fetch(...a);
 
 /* ---------- Ayarlar ---------- */
-const DEFAULTS = {
-  tf: '4h', emaFast: 50, emaSlow: 200, don: 20, atrN: 14, atrK: 3, riskPct: 2, maxPosPct: 100, cooldown: 3,
-  dailyLossPct: 3, maxDDPct: 15, maxSlipPct: 0.3, maxDevPct: 1, minTradeUsd: 5,
-  rpc: 'https://arb1.arbitrum.io/rpc', paperCash: 1000, feePct: 0.05, slipPct: 0.05, gasUsd: 0.1
-};
+const DEFAULTS = Core.DEFAULTS;
 let S = Object.assign({}, DEFAULTS, store.get('settings', {}));
+if (store.get('settingsV', 1) < 2) { S.maxPosPct = DEFAULTS.maxPosPct; S.assets = DEFAULTS.assets.slice(); S.maxPositions = DEFAULTS.maxPositions; store.set('settingsV', 2); store.set('settings', S); }
 const FIELDS = {
   formStrat: [
     ['tf', 'Mum süresi', 'Kısa süre daha çok işlem ve daha çok ücret demektir.', { '1h': '1 saat', '4h': '4 saat', '1d': '1 gün' }],
+    ['maxPositions', 'Aynı anda en çok pozisyon', 'Sinyal veren varlık sayısı bunu aşarsa en güçlü kırılımlar seçilir.'],
+    ['maxPosPct', 'Varlık başına en büyük pay (%)', 'Hesabın en fazla bu kadarı tek bir varlığa gider.'],
     ['emaFast', 'Hızlı ortalama (mum)', 'Trendin kısa vadeli yönü.'],
     ['emaSlow', 'Yavaş ortalama (mum)', 'Fiyat bunun altındayken alım yapılmaz.'],
     ['don', 'Kırılım penceresi (mum)', 'Alım için fiyatın aşması gereken zirvenin baktığı süre.'],
     ['atrN', 'Oynaklık penceresi (mum)', 'Stop mesafesi bu ortalama hareketten hesaplanır.'],
     ['atrK', 'Stop mesafesi (oynaklık katı)', 'Büyük değer daha geniş stop ve daha küçük pozisyon verir.'],
     ['riskPct', 'İşlem başına risk (%)', 'Stop çalışırsa hesabın kaybedeceği en fazla pay.'],
-    ['maxPosPct', 'En büyük pozisyon (%)', 'Hesabın en fazla bu kadarı ETH\'ye çevrilir.'],
-    ['cooldown', 'Stop sonrası bekleme (mum)', 'Stop çalıştıktan sonra yeni alım için beklenen süre.']
+    ['cooldown', 'Stop sonrası bekleme (mum)', 'Stop çalışan varlıkta yeni alım için beklenen süre.']
   ],
   formRisk: [
-    ['dailyLossPct', 'Günlük zarar sınırı (%)', 'Aşılırsa pozisyon kapatılır, bot ertesi güne kadar durur.'],
-    ['maxDDPct', 'Zirveden düşüş sınırı (%)', 'Aşılırsa pozisyon kapatılır, bot sen freni kaldırana kadar durur.'],
+    ['dailyLossPct', 'Günlük zarar sınırı (%)', 'Aşılırsa tüm pozisyonlar kapatılır, bot ertesi güne kadar durur.'],
+    ['maxDDPct', 'Zirveden düşüş sınırı (%)', 'Aşılırsa tüm pozisyonlar kapatılır, bot sen freni kaldırana kadar durur.'],
     ['maxSlipPct', 'İşlemde en fazla kayma (%)', 'Borsa fiyatı işlem sırasında bundan fazla kötüleşirse işlem iptal olur.'],
     ['maxDevPct', 'Piyasa fiyatından en fazla sapma (%)', 'Borsa teklifi piyasa fiyatından bu kadar farklıysa işlem yapılmaz.'],
     ['minTradeUsd', 'En küçük işlem ($)', 'Bundan küçük alımlar ücret yüzünden yapılmaz.']
@@ -492,26 +858,22 @@ const FIELDS = {
   formMisc: [
     ['rpc', 'Arbitrum bağlantı adresi (RPC)', 'Bot cüzdanı işlemleri bu adres üzerinden gönderir.', 'text'],
     ['paperCash', 'Simülasyon başlangıç tutarı ($)', 'Simülasyonu sıfırlayınca geçerli olur.'],
-    ['feePct', 'Varsayılan borsa ücreti (%)', 'Simülasyon ve geçmiş testi için.'],
-    ['slipPct', 'Varsayılan kayma (%)', 'Simülasyon ve geçmiş testi için.'],
+    ['slipPct', 'Varsayılan kayma (%)', 'Simülasyon ve geçmiş testi için; borsa ücreti varlığa göre ayrıca eklenir.'],
     ['gasUsd', 'Varsayılan ağ ücreti ($/işlem)', 'Simülasyon ve geçmiş testi için.']
   ]
 };
 
 /* ---------- Biçimlendirme ---------- */
-const nf = (d) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const nf = d => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d });
 const usd = v => v == null || !isFinite(v) ? '–' : (v < 0 ? '−$' : '$') + nf(2).format(Math.abs(v));
+const price = v => v == null || !isFinite(v) ? '–' : '$' + nf(v >= 1000 ? 0 : v >= 10 ? 2 : 4).format(v);
 const pct = (v, d = 1) => v == null || !isFinite(v) ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + '%' + nf(d).format(Math.abs(v * 100));
-const eth = v => v == null ? '–' : nf(4).format(v);
+const qtyf = v => v == null ? '–' : nf(v >= 100 ? 1 : 4).format(v);
 const dt = t => new Date(t).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const dshort = t => new Date(t).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: '2-digit' });
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const errMsg = e => {
-  if (!e) return 'Bilinmeyen hata';
-  if (e.code === 4001 || e.code === 'ACTION_REJECTED') return 'İşlem MetaMask\'ta reddedildi.';
-  return (e.shortMessage || e.reason || e.message || String(e)).slice(0, 220);
-};
+const TFNAME = { '1h': '1 saatlik', '4h': '4 saatlik', '1d': 'günlük' };
 
 function ask(title, text, yes = 'Onayla') {
   return new Promise(res => {
@@ -522,62 +884,6 @@ function ask(title, text, yes = 'Onayla') {
   });
 }
 
-/* ---------- Fiyat verisi ---------- */
-let feedName = '';
-async function getJSON(url) {
-  const c = new AbortController(); const to = setTimeout(() => c.abort(), 12000);
-  try { const r = await fetch(url, { signal: c.signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
-  finally { clearTimeout(to); }
-}
-const BINANCE = ['https://data-api.binance.vision', 'https://api.binance.com'];
-async function binanceKlines(tf, limit, endTime) {
-  let err;
-  for (const h of BINANCE) {
-    try {
-      const rows = await getJSON(`${h}/api/v3/klines?symbol=ETHUSDT&interval=${tf}&limit=${limit}${endTime ? '&endTime=' + endTime : ''}`);
-      return rows.map(r => ({ t: r[0], o: +r[1], h: +r[2], l: +r[3], c: +r[4] }));
-    } catch (e) { err = e; }
-  }
-  throw err;
-}
-async function krakenOHLC(tf) {
-  const iv = { '1h': 60, '4h': 240, '1d': 1440 }[tf];
-  const j = await getJSON(`https://api.kraken.com/0/public/OHLC?pair=ETHUSD&interval=${iv}`);
-  if (j.error && j.error.length) throw new Error(j.error[0]);
-  const k = Object.keys(j.result).find(x => x !== 'last');
-  return j.result[k].map(r => ({ t: r[0] * 1000, o: +r[1], h: +r[2], l: +r[3], c: +r[4] }));
-}
-function checkBars(b) {
-  if (!Array.isArray(b) || b.length < 50) throw new Error('Fiyat verisi eksik');
-  for (let i = 0; i < b.length; i++) {
-    const x = b[i];
-    if (!(x.o > 0 && x.h > 0 && x.l > 0 && x.c > 0) || x.h < x.l || (i && x.t <= b[i - 1].t)) throw new Error('Fiyat verisi bozuk');
-  }
-  return b;
-}
-async function fetchRecent(tf) {
-  try { const b = checkBars(await binanceKlines(tf, 500)); feedName = 'Binance'; return b; }
-  catch (e) { const b = checkBars(await krakenOHLC(tf)); feedName = 'Kraken'; return b; }
-}
-async function fetchHistory(tf, years, onProg) {
-  const need = Math.ceil(years * Engine.BARS_PER_YEAR[tf]) + S.emaSlow + 5;
-  let out = [], end;
-  try {
-    while (out.length < need) {
-      const page = await binanceKlines(tf, 1000, end);
-      if (!page.length) break;
-      out = page.concat(out); end = page[0].t - 1;
-      onProg(Math.min(1, out.length / need));
-      if (page.length < 1000) break;
-    }
-  } catch (e) {
-    if (!out.length) { out = await krakenOHLC(tf); feedName = 'Kraken'; }
-  }
-  const tfMs = Engine.TF_MS[tf];
-  out = out.filter(b => b.t + tfMs <= Date.now());
-  return checkBars(out.slice(-need));
-}
-
 /* ---------- Grafik (canvas) ---------- */
 function drawChart(cv, tip, cfg, hoverI) {
   cv._cfg = cfg;
@@ -585,13 +891,13 @@ function drawChart(cv, tip, cfg, hoverI) {
   if (!w || !h) return;
   if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
   const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-  const P = { l: 4, r: 58, t: 10, b: 22 };
+  const P = { l: 4, r: 62, t: 10, b: 22 };
   const base = cfg.series[0].pts; if (!base.length) return;
   const t0 = base[0][0], t1 = base[base.length - 1][0];
   let lo = Infinity, hi = -Infinity;
   for (const s of cfg.series) for (const p of s.pts) if (p[1] != null) { if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; }
   for (const l of cfg.hlines || []) { if (l.v < lo) lo = l.v; if (l.v > hi) hi = l.v; }
-  const pad = (hi - lo) * 0.06 || 1; lo -= pad; hi += pad;
+  const pad = (hi - lo) * 0.06 || hi * 0.01 || 1; lo -= pad; hi += pad;
   const X = t => P.l + (t - t0) / (t1 - t0 || 1) * (w - P.l - P.r), Y = v => P.t + (hi - v) / (hi - lo) * (h - P.t - P.b);
   g.font = '11px ' + css('--body'); g.textBaseline = 'middle';
   for (let k = 0; k <= 3; k++) {
@@ -605,9 +911,7 @@ function drawChart(cv, tip, cfg, hoverI) {
     g.textAlign = k === 0 ? 'left' : k === 2 ? 'right' : 'center'; g.fillStyle = css('--muted');
     g.fillText(dshort(t), k === 0 ? P.l : k === 2 ? w - P.r : (P.l + w - P.r) / 2, h - 5);
   }
-  for (const l of cfg.hlines || []) {
-    g.strokeStyle = l.color; g.setLineDash([5, 4]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(P.l, Y(l.v)); g.lineTo(w - P.r, Y(l.v)); g.stroke(); g.setLineDash([]);
-  }
+  for (const l of cfg.hlines || []) { g.strokeStyle = l.color; g.setLineDash([5, 4]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(P.l, Y(l.v)); g.lineTo(w - P.r, Y(l.v)); g.stroke(); g.setLineDash([]); }
   for (const s of cfg.series) {
     g.strokeStyle = s.color; g.lineWidth = s.width || 2; g.lineJoin = 'round'; g.beginPath();
     let pen = false;
@@ -635,8 +939,8 @@ function drawChart(cv, tip, cfg, hoverI) {
   if (!cv._bound) {
     cv._bound = true;
     const move = e => {
-      const c = cv._cfg; if (!c) return; const r = cv.getBoundingClientRect(); const b = c.series[0].pts;
-      const frac = (e.clientX - r.left - 4) / (r.width - 62); const i = Math.max(0, Math.min(b.length - 1, Math.round(frac * (b.length - 1))));
+      const c = cv._cfg; if (!c) return; const r = cv.getBoundingClientRect(), b = c.series[0].pts;
+      const i = Math.max(0, Math.min(b.length - 1, Math.round((e.clientX - r.left - 4) / (r.width - 66) * (b.length - 1))));
       drawChart(cv, tip, c, i);
     };
     cv.addEventListener('pointermove', move); cv.addEventListener('pointerdown', move);
@@ -646,174 +950,51 @@ function drawChart(cv, tip, cfg, hoverI) {
 const legend = (el, items) => { el.innerHTML = items.map(i => i.mark ? `<span>${i.mark} ${esc(i.name)}</span>` : `<span><i class="${i.dash ? 'dash' : ''}" style="background:${i.color};color:${i.color}"></i>${esc(i.name)}</span>`).join(''); };
 
 /* ---------- Durum ---------- */
-const freshRT = () => ({ halted: null, pos: null, lastBarT: null, cooldownUntilT: 0, peakEq: null, dayKey: null, dayStartEq: null, errCount: 0 });
-let mode = 'paper', running = false, busy = false;
-let P = store.get('paper', null) || { usdc: S.paperCash, weth: 0 };
-let R = Object.assign(freshRT(), store.get('rt:paper', {}));
-let M = null;            // piyasa: {closed, live, ind, at}
+let mode = 'paper', running = false, busy = false, chartSym = 'ETH';
+let P = store.get('paper', null) || { usdc: S.paperCash, tok: {} };
+if (P.weth != null) { P.tok = P.tok || {}; if (P.weth) P.tok.ETH = P.weth; delete P.weth; }
+P.tok = P.tok || {};
+let R = Core.migrateRT(Object.assign(Core.freshRT(), store.get('rt:paper', {})));
+let M = null;            // piyasa: {mkt, errs, at}
 let V = null;            // görünüm: {bal, eq}
-let dataErr = null;
+let dataErr = null, feedName = '';
 let tradeLog = store.get('log', []);
 const events = [];
-const W = { mm: null, signer: null, addr: null, bot: null, rpc: null, c: null, preOK: false, testOK: false, unlocked: false };
+const W = { mm: null, signer: null, addr: null, bot: null, rpc: null, c: null, pre: null, tested: {}, unlocked: false, bal: null };
 const rtKey = () => mode === 'paper' ? 'rt:paper' : 'rt:live:' + (W.bot ? W.bot.address.toLowerCase() : 'none');
 const save = () => { store.set(rtKey(), R); if (mode === 'paper') store.set('paper', P); store.set('log', tradeLog.slice(-200)); };
-function ev(msg, bad) { events.unshift({ t: Date.now(), msg, bad }); if (events.length > 60) events.pop(); renderEvents(); }
+function ev(msg, bad) { if (events[0] && events[0].msg === msg) { events[0].t = Date.now(); } else { events.unshift({ t: Date.now(), msg, bad }); if (events.length > 60) events.pop(); } renderEvents(); }
 function logTrade(x) { tradeLog.push(Object.assign({ t: Date.now(), mode }, x)); save(); }
-
-/* ---------- Simülasyon adaptörü ---------- */
-const Paper = {
-  async balances() { return { usdc: P.usdc, weth: P.weth, eth: null }; },
-  async buy(usdAmt, ref) {
-    const cost = (S.feePct + S.slipPct) / 100, qty = usdAmt * (1 - cost) / ref;
-    P.usdc -= usdAmt + S.gasUsd; P.weth += qty; return { qty, price: usdAmt / qty, usd: usdAmt };
-  },
-  async sellAll(ref) {
-    const cost = (S.feePct + S.slipPct) / 100, qty = P.weth, out = qty * ref * (1 - cost) - S.gasUsd;
-    P.usdc += out; P.weth = 0; return { qty, price: out / qty, usd: out };
-  }
-};
-
-/* ---------- Canlı adaptör: bot cüzdanı + Uniswap v3 ---------- */
-function loadEthers() {
-  if (window.ethers) return Promise.resolve();
-  return new Promise((res, rej) => {
-    (function next(i) {
-      if (i >= ETHERS_URLS.length) return rej(new Error('Cüzdan kütüphanesi (ethers) yüklenemedi. İnternet bağlantını kontrol et.'));
-      const s = document.createElement('script'); s.src = ETHERS_URLS[i];
-      s.onload = () => window.ethers ? res() : next(i + 1); s.onerror = () => next(i + 1);
-      document.head.appendChild(s);
-    })(0);
-  });
-}
-async function swap(tokenIn, tokenOut, amountIn, ref, side) {
-  const E = window.ethers, me = W.bot.address, c = W.c;
-  const gasBal = await W.rpc.getBalance(me);
-  if (+E.formatUnits(gasBal, 18) < MIN_GAS_ETH) throw new Error('Bot cüzdanında ağ ücreti için yeterli ETH yok.');
-  // 1) Teklif al
-  const q = await c.quoter.quoteExactInputSingle.staticCall({ tokenIn, tokenOut, amountIn, fee: POOL_FEE, sqrtPriceLimitX96: 0n });
-  const out = q[0];
-  if (out <= 0n) throw new Error('Borsa teklif vermedi.');
-  // 2) Teklifi piyasa fiyatıyla karşılaştır
-  const implied = side === 'buy' ? +E.formatUnits(amountIn, 6) / +E.formatUnits(out, 18) : +E.formatUnits(out, 6) / +E.formatUnits(amountIn, 18);
-  const dev = Math.abs(implied / ref - 1) * 100;
-  if (!(dev <= S.maxDevPct)) throw new Error(`Borsa fiyatı piyasadan %${nf(2).format(dev)} sapıyor (sınır %${S.maxDevPct}). İşlem yapılmadı.`);
-  const slipBps = BigInt(Math.round(S.maxSlipPct * 100));
-  const minOut = out * (10000n - slipBps) / 10000n;
-  // 3) Yalnızca gereken tutar kadar harcama izni
-  const tIn = tokenIn === ADDR.USDC ? c.usdc : c.weth, tOut = tokenOut === ADDR.USDC ? c.usdc : c.weth;
-  if (await tIn.allowance(me, ADDR.ROUTER) < amountIn) { const a = await tIn.approve(ADDR.ROUTER, amountIn); const ar = await a.wait(); if (!ar || ar.status !== 1) throw new Error('Harcama izni işlemi başarısız.'); }
-  // 4) Önce zincirde dene (ücretsiz), sonra gönder. Süre sınırı: 2 dakika.
-  const before = await tOut.balanceOf(me);
-  const data = c.router.interface.encodeFunctionData('exactInputSingle', [{ tokenIn, tokenOut, fee: POOL_FEE, recipient: me, amountIn, amountOutMinimum: minOut, sqrtPriceLimitX96: 0n }]);
-  const deadline = BigInt(Math.floor(Date.now() / 1000) + 120);
-  await c.router.multicall.staticCall(deadline, [data]);
-  const tx = await c.router.multicall(deadline, [data]);
-  const rc = await tx.wait();
-  if (!rc || rc.status !== 1) throw new Error('Takas işlemi zincirde başarısız oldu.');
-  const got = (await tOut.balanceOf(me)) - before;
-  if (got < minOut) throw new Error('Takas beklenenden az getirdi; bakiyeni kontrol et.');
-  return { got, hash: tx.hash };
-}
-const Live = {
-  async balances() {
-    const E = window.ethers, a = W.bot.address;
-    const [u, w, e] = await Promise.all([W.c.usdc.balanceOf(a), W.c.weth.balanceOf(a), W.rpc.getBalance(a)]);
-    return { usdc: +E.formatUnits(u, 6), weth: +E.formatUnits(w, 18), eth: +E.formatUnits(e, 18), rawW: w, rawU: u };
-  },
-  async buy(usdAmt, ref) {
-    const E = window.ethers, amt = E.parseUnits(usdAmt.toFixed(6), 6);
-    const r = await swap(ADDR.USDC, ADDR.WETH, amt, ref, 'buy'); const qty = +E.formatUnits(r.got, 18);
-    return { qty, price: usdAmt / qty, usd: usdAmt, hash: r.hash };
-  },
-  async sellRaw(rawW, ref) {
-    const E = window.ethers, r = await swap(ADDR.WETH, ADDR.USDC, rawW, ref, 'sell');
-    const qty = +E.formatUnits(rawW, 18), out = +E.formatUnits(r.got, 6);
-    return { qty, price: out / qty, usd: out, hash: r.hash };
-  },
-  async sellAll(ref) { const b = await this.balances(); return this.sellRaw(b.rawW, ref); }
-};
-const adapter = () => mode === 'paper' ? Paper : (W.bot ? Live : null);
+const live = () => window.ethers && W.bot ? Core.liveAdapter(window.ethers, W, S) : null;
+const adapter = () => mode === 'paper' ? Core.paperAdapter(P, S) : live();
+// Gerçek parada yalnızca ön kontrolü ve test işlemini geçen varlıklarda alım yapılır
+const tradeable = () => W.pre ? W.pre.tradeable.filter(s => W.tested[s]) : [];
+const eqOf = b => M ? b.usdc + ASSETS.reduce((t, a) => t + (b.tok[a.sym] || 0) * ((M.mkt[a.sym] ? M.mkt[a.sym].live : R.lastPx[a.sym]) || 0), 0) : null;
 
 /* ---------- Bot döngüsü ---------- */
 async function tick() {
   if (busy) return; busy = true;
   try {
-    const tfMs = Engine.TF_MS[S.tf];
-    try {
-      const bars = await fetchRecent(S.tf), now = Date.now();
-      if (now - bars[bars.length - 1].t > 2 * tfMs) throw new Error('Fiyat verisi güncel değil');
-      const closed = bars.filter(b => b.t + tfMs <= now);
-      M = { closed, live: bars[bars.length - 1].c, ind: Engine.indicators(closed, S), at: now }; dataErr = null;
-    } catch (e) {
-      dataErr = 'Fiyat verisi alınamadı (' + errMsg(e) + '). Veri gelene kadar bot işlem yapmaz.';
-      if (M && Date.now() - M.at > 5 * 60e3) M = null;   // eski fiyatla karar verme
+    const now = Date.now(), r = await Core.fetchMarket(F, S, now, Object.keys(R.positions));
+    if (!Object.keys(r.mkt).length) {
+      dataErr = 'Fiyat verisi alınamadı (' + (Object.values(r.errs)[0] || 'bağlantı yok') + '). Veri gelene kadar bot işlem yapmaz.';
+      if (M && now - M.at > 5 * 60e3) M = null;   // eski fiyatla karar verme
       return;
     }
+    M = { mkt: r.mkt, errs: r.errs, at: now }; dataErr = null; feedName = r.feed;
+    if (!M.mkt[chartSym]) chartSym = Object.keys(M.mkt)[0];
     const A = adapter(); if (!A) { V = null; return; }
     try {
-      await step(A, tfMs);
+      V = await Core.step({ S, R, mkt: M.mkt, A, now, active: running, ev, logTrade, tradeable: mode === 'live' ? tradeable() : null, paperGas: mode === 'paper' ? S.gasUsd : 0, freshPct: 15 });
       R.errCount = 0;
     } catch (e) {
       ev('Hata: ' + errMsg(e), true);
-      if (running) { R.errCount = (R.errCount || 0) + 1; if (R.errCount >= 3) { R.halted = { kind: 'err', reason: 'Art arda 3 hata oluştu: ' + errMsg(e) }; ev('Bot güvenlik için durduruldu.', true); } }
+      try { const b = await A.balances(); V = { bal: b, eq: eqOf(b) }; } catch (e2) {}
+      if (running) { R.errCount = (R.errCount || 0) + 1; if (R.errCount >= 3 && !R.halted) { R.halted = { kind: 'err', reason: 'Art arda 3 hata oluştu: ' + errMsg(e) }; ev('Bot güvenlik için yeni alımları durdurdu.', true); } }
     }
     save();
   } finally { busy = false; render(); }
 }
-async function step(A, tfMs) {
-  const { closed, live, ind } = M, i = closed.length - 1, now = Date.now();
-  let bal = await A.balances(), eq = bal.usdc + bal.weth * live;
-  const hasPos = bal.weth * live >= 1;
-  if (!hasPos && R.pos) R.pos = null;
-  if (hasPos && !R.pos && Engine.ready(i, ind)) { R.pos = { qty: bal.weth, entry: live, stop: live - S.atrK * ind.a[i], hi: live, t: now }; ev('Cüzdanda ETH bulundu; pozisyon olarak devralındı, stop ' + usd(R.pos.stop) + '.'); }
-  if (R.pos) R.pos.qty = bal.weth;
-  const dk = new Date().toISOString().slice(0, 10);
-  if (R.dayKey !== dk || R.dayStartEq == null) { R.dayKey = dk; R.dayStartEq = eq; if (R.halted && R.halted.kind === 'day') { R.halted = null; ev('Yeni gün: günlük zarar freni kalktı.'); } }
-  if (R.peakEq == null || eq > R.peakEq) R.peakEq = eq;
-  V = { bal, eq };
-  if (!running || R.halted) return;
-
-  const exit = async (reason) => {
-    if (!R.pos) return;
-    const r = await A.sellAll(live);
-    logTrade({ side: 'Satış', qty: r.qty, price: r.price, usd: r.usd, reason, hash: r.hash, pnl: R.pos.usdIn != null ? r.usd - R.pos.usdIn : null });
-    ev(`Satıldı: ${eth(r.qty)} ETH, ${usd(r.price)} fiyattan (${reason}).`);
-    R.pos = null; bal = await A.balances(); V = { bal, eq: bal.usdc + bal.weth * live };
-  };
-  // Güvenlik frenleri her şeyden önce gelir
-  if (R.dayStartEq > 0 && eq <= R.dayStartEq * (1 - S.dailyLossPct / 100)) {
-    await exit('günlük zarar sınırı');
-    R.halted = { kind: 'day', reason: `Bugünkü zarar %${S.dailyLossPct} sınırını aştı. Bot yarın (UTC gece yarısı) kendiliğinden devam eder.` }; return;
-  }
-  if (R.peakEq > 0 && eq <= R.peakEq * (1 - S.maxDDPct / 100)) {
-    await exit('zirveden düşüş sınırı');
-    R.halted = { kind: 'dd', reason: `Hesap zirvesinden %${S.maxDDPct} düştü. Bot, sen freni kaldırana kadar işlem yapmaz.` }; return;
-  }
-  if (R.pos && live <= R.pos.stop) { await exit('stop'); R.cooldownUntilT = now + S.cooldown * tfMs; return; }
-  if (!Engine.ready(i, ind)) return;
-  const newBar = closed[i].t !== R.lastBarT;
-  if (R.pos) {
-    if (newBar) { if (closed[i].c > R.pos.hi) R.pos.hi = closed[i].c; const ns = R.pos.hi - S.atrK * ind.a[i]; if (ns > R.pos.stop) R.pos.stop = ns; }
-    if (Engine.trendBroken(i, ind)) await exit('trend bozuldu');
-  } else if (newBar) {
-    const fresh = now - (closed[i].t + tfMs) < tfMs * 0.15;   // bayat sinyalle alım yapma
-    if (fresh && now >= (R.cooldownUntilT || 0) && Engine.entryOK(i, closed, ind)) {
-      const frac = Engine.posFraction(live, ind.a[i], S);
-      const amt = Math.floor(Math.min(bal.usdc * 0.998 - (mode === 'paper' ? S.gasUsd : 0), eq * frac) * 100) / 100;
-      if (amt < S.minTradeUsd) ev('Alım sinyali geldi ama tutar en küçük işlemin altında; atlandı.');
-      else {
-        const r = await A.buy(amt, live);
-        R.pos = { qty: r.qty, entry: r.price, stop: live - S.atrK * ind.a[i], hi: live, t: now, usdIn: r.usd };
-        logTrade({ side: 'Alış', qty: r.qty, price: r.price, usd: r.usd, reason: 'trend + kırılım', hash: r.hash });
-        ev(`Alındı: ${eth(r.qty)} ETH, ${usd(r.price)} fiyattan. Stop ${usd(R.pos.stop)}.`);
-        bal = await A.balances(); V = { bal, eq: bal.usdc + bal.weth * live };
-      }
-    }
-  }
-  R.lastBarT = closed[i].t;
-}
-
 let wakeLock = null;
 async function setRunning(on) {
   running = on;
@@ -824,51 +1005,69 @@ async function setRunning(on) {
 function setMode(m) {
   if (running) return;
   if (m === 'live' && !(W.bot && W.unlocked)) { ev('Gerçek para modu için önce Cüzdan sekmesindeki adımları tamamla.', true); showTab('cuzdan'); return; }
-  save(); mode = m; R = Object.assign(freshRT(), store.get(rtKey(), {})); V = null; render(); tick();
+  save(); mode = m; R = Core.migrateRT(Object.assign(Core.freshRT(), store.get(rtKey(), {}))); V = null; render(); tick();
 }
 
 /* ---------- Durum ekranı ---------- */
 function render() {
+  const en = Core.enabled(S), npos = Object.keys(R.positions).length;
+  $('brandSub').textContent = `${en.length} varlık, Arbitrum One`;
   $('modeBadge').textContent = mode === 'paper' ? 'Simülasyon' : 'Gerçek para'; $('modeBadge').className = 'badge' + (mode === 'live' ? ' live' : '');
   $('modePaper').className = mode === 'paper' ? 'on' : ''; $('modeLive').className = mode === 'live' ? 'on' : '';
   $('modePaper').disabled = $('modeLive').disabled = running;
   $('btnRun').textContent = running ? 'Botu durdur' : 'Botu başlat'; $('btnRun').className = running ? 'danger' : 'primary';
   $('btnResetHalt').style.display = R.halted && R.halted.kind !== 'day' ? '' : 'none';
   let h, p, dot = '', light = running ? 'Bot çalışıyor' : 'Bot duruyor';
-  const i = M ? M.closed.length - 1 : -1, up = M && Engine.trendUp(i, M.closed, M.ind);
+  const info = s => { const m = M && M.mkt[s]; if (!m) return null; const i = m.closed.length - 1; return { m, i, ok: Engine.ready(i, m.ind), up: Engine.trendUp(i, m.closed, m.ind) }; };
+  const ups = en.filter(a => { const x = info(a.sym); return x && x.up; }).map(a => a.sym);
   if (dataErr && !M) { h = 'Fiyat verisi yok.'; p = dataErr + ' Bu sayfa bir önizleme içinde açıldıysa dış bağlantılar kapalı olabilir; sayfayı kendi adresinden aç.'; dot = 'halt'; }
   else if (!M) { h = 'Yükleniyor…'; p = 'Fiyat verisi alınıyor.'; }
-  else if (R.halted) { h = 'Güvenlik freni devrede.'; p = R.halted.reason; dot = 'halt'; light = 'Bot işlem yapmıyor'; }
-  else if (R.pos) {
-    const pl = R.pos.entry ? M.live / R.pos.entry - 1 : null;
-    h = `Pozisyonda: ${eth(R.pos.qty)} ETH.`; dot = running ? 'run' : 'pos';
-    p = `Alış ${usd(R.pos.entry)}, şimdi ${usd(M.live)} (${pct(pl)}). Fiyat ${usd(R.pos.stop)} seviyesine inerse ya da trend bozulursa satar.` + (running ? '' : ' Bot durduğu için stop şu an çalışmıyor.');
-  } else if (up) { h = 'Nakitte, kırılım bekliyor.'; p = `Trend yukarı. Bir mum ${usd(M.ind.d[i])} üzerinde kapanırsa alır. Şu an ${usd(M.live)}.`; dot = running ? 'run' : ''; }
-  else { h = 'Nakitte, trend aşağı.'; p = `ETH ${usd(M.live)}. Trend yukarı dönene kadar alım yapmaz; bu günler ya da haftalar sürebilir.`; dot = running ? 'run' : ''; }
-  if (!running && M && !R.halted && !R.pos) p += ' Bot şu an durduğu için izlemiyor.';
+  else if (R.halted) { h = 'Güvenlik freni devrede.'; p = R.halted.reason + (R.halted.kind === 'err' && npos ? ' Açık pozisyonların stopları izlenmeye devam ediyor.' : ''); dot = 'halt'; light = 'Bot yeni alım yapmıyor'; }
+  else if (npos) {
+    h = `${npos} pozisyon açık: ${Object.keys(R.positions).join(', ')}.`; dot = running ? 'run' : 'pos';
+    p = 'Her biri kendi stop seviyesine inerse ya da trendi bozulursa satılır; seviyeler aşağıdaki tabloda.' + (running ? '' : ' Bot durduğu için stoplar şu an çalışmıyor.');
+  } else if (ups.length) { h = 'Nakitte, kırılım bekliyor.'; p = `${en.length} varlıktan ${ups.length} tanesi yükseliş trendinde (${ups.join(', ')}). Biri son ${S.don} mumun zirvesini aşarak kapanırsa alır.`; dot = running ? 'run' : ''; }
+  else { h = 'Nakitte, trend aşağı.'; p = `Taranan ${en.length} varlığın hiçbiri yükseliş trendinde değil. Biri yukarı dönene kadar alım yapmaz; bu günler ya da haftalar sürebilir.`; dot = running ? 'run' : ''; }
+  if (!running && M && !R.halted && !npos) p += ' Bot şu an durduğu için izlemiyor.';
   if (dataErr && M) p = dataErr;
   $('stateH').textContent = h; $('stateP').textContent = p; $('dot').className = 'dot ' + dot; $('lightTxt').textContent = light + (feedName && M ? ', veri: ' + feedName : '');
   const eq = V ? V.eq : null, day = V && R.dayStartEq ? eq - R.dayStartEq : null;
   $('fEq').textContent = usd(eq);
   $('fDay').textContent = day == null ? '–' : usd(day); $('fDay').className = 'num ' + (day > 0.005 ? 'up' : day < -0.005 ? 'down' : '');
-  $('fPos').textContent = V ? eth(V.bal.weth) : '–';
-  $('fStop').textContent = R.pos ? usd(R.pos.stop) : 'yok';
-  if (M) {
-    const n = Math.min(200, M.closed.length), a = M.closed.length - n, pts = k => M.closed.slice(a).map((b, j) => [b.t, k(b, a + j)]);
-    const cfg = { fmt: v => '$' + nf(0).format(v), series: [
-      { name: 'ETH fiyatı', color: css('--ink'), width: 2, pts: pts(b => b.c) },
-      { name: `Hızlı ortalama (${S.emaFast})`, color: css('--s1'), width: 2, pts: pts((b, j) => M.ind.f[j]) },
-      { name: `Yavaş ortalama (${S.emaSlow})`, color: css('--s2'), width: 2, pts: pts((b, j) => M.ind.s[j]) }],
-      hlines: R.pos ? [{ v: R.pos.stop, color: css('--loss') }] : [],
-      markers: tradeLog.filter(t => t.mode === mode).map(t => ({ t: t.t, v: t.price, kind: t.side === 'Alış' ? 'buy' : 'sell' })) };
+  $('fPos').textContent = `${npos} / ${S.maxPositions}`; $('fCash').textContent = V ? usd(V.bal.usdc) : '–';
+  // Tarama tablosu
+  const rows = ASSETS.filter(a => en.includes(a) || R.positions[a.sym]).map(a => {
+    const s = a.sym, x = info(s), pos = R.positions[s];
+    let st;
+    if (!x) st = '<span class="err" style="margin:0">Veri yok</span>';
+    else if (pos) st = `Pozisyonda <span class="${x.m.live >= pos.entry ? 'up' : 'down'}">${pct(x.m.live / pos.entry - 1)}</span>, stop ${price(pos.stop)}`;
+    else if (!x.ok) st = 'Yeterli geçmiş yok';
+    else if (x.up) st = `Kırılım: ${price(x.m.ind.d[x.i])} üzeri kapanış`;
+    else st = 'Bekliyor';
+    return `<tr data-sym="${s}" class="${s === chartSym ? 'sel' : ''}"><td><b>${s}</b></td><td class="num">${x ? price(x.m.live) : '–'}</td><td>${x && x.ok ? `<span class="pill ${x.up ? 'up' : ''}">${x.up ? '▲ Yukarı' : '▼ Aşağı'}</span>` : '–'}</td><td>${st}</td></tr>`;
+  });
+  $('tblScan').querySelector('tbody').innerHTML = rows.join('');
+  $('tblScan').querySelectorAll('tr[data-sym]').forEach(tr => tr.onclick = () => { chartSym = tr.dataset.sym; render(); });
+  // Grafik
+  const syms = M ? Object.keys(M.mkt) : [];
+  $('chartSeg').innerHTML = syms.map(s => `<button data-c="${s}" class="${s === chartSym ? 'on' : ''}">${s}</button>`).join('');
+  $('chartSeg').querySelectorAll('button').forEach(b => b.onclick = () => { chartSym = b.dataset.c; render(); });
+  const cm = M && M.mkt[chartSym];
+  if (cm) {
+    const n = Math.min(200, cm.closed.length), a = cm.closed.length - n, pts = k => cm.closed.slice(a).map((b, j) => [b.t, k(b, a + j)]), pos = R.positions[chartSym];
+    const cfg = { fmt: price, series: [
+      { name: chartSym + ' fiyatı', color: css('--ink'), width: 2, pts: pts(b => b.c) },
+      { name: `Hızlı ortalama (${S.emaFast})`, color: css('--s1'), width: 2, pts: pts((b, j) => cm.ind.f[j]) },
+      { name: `Yavaş ortalama (${S.emaSlow})`, color: css('--s2'), width: 2, pts: pts((b, j) => cm.ind.s[j]) }],
+      hlines: pos ? [{ v: pos.stop, color: css('--loss') }] : [],
+      markers: tradeLog.filter(t => t.mode === mode && (t.sym || 'ETH') === chartSym).map(t => ({ t: t.t, v: t.price, kind: t.side === 'Alış' ? 'buy' : 'sell' })) };
     drawChart($('cvPrice'), $('tipPrice'), cfg, null);
-    legend($('lgPrice'), cfg.series.concat(R.pos ? [{ name: 'Stop', color: css('--loss'), dash: true }] : []).concat([{ mark: '▲', name: 'alış' }, { mark: '▼', name: 'satış' }]));
-    $('chartSub').textContent = `Son ${n} mum (${{ '1h': '1 saatlik', '4h': '4 saatlik', '1d': 'günlük' }[S.tf]}).`;
+    legend($('lgPrice'), cfg.series.concat(pos ? [{ name: 'Stop', color: css('--loss'), dash: true }] : []).concat([{ mark: '▲', name: 'alış' }, { mark: '▼', name: 'satış' }]));
+    $('chartTitle').textContent = chartSym + ' fiyatı ve trend'; $('chartSub').textContent = `Son ${n} mum (${TFNAME[S.tf]}).`;
   }
-  const rows = tradeLog.filter(t => t.mode === mode).slice(-30).reverse();
-  $('logEmpty').style.display = rows.length ? 'none' : '';
-  $('tblLog').style.display = rows.length ? '' : 'none';
-  $('tblLog').querySelector('tbody').innerHTML = rows.map(t => `<tr><td>${dt(t.t)}</td><td>${t.side} ${eth(t.qty)} ETH</td><td class="num">${usd(t.price)}</td><td class="num">${usd(t.usd)}${t.pnl != null ? ` <span class="${t.pnl >= 0 ? 'up' : 'down'}">(${usd(t.pnl)})</span>` : ''}</td><td>${esc(t.reason)}${t.hash ? ` <a href="https://arbiscan.io/tx/${t.hash}" target="_blank" rel="noopener">kayıt</a>` : ''}</td></tr>`).join('');
+  const lr = tradeLog.filter(t => t.mode === mode).slice(-30).reverse();
+  $('logEmpty').style.display = lr.length ? 'none' : ''; $('tblLog').style.display = lr.length ? '' : 'none';
+  $('tblLog').querySelector('tbody').innerHTML = lr.map(t => `<tr><td>${dt(t.t)}</td><td>${t.side} ${qtyf(t.qty)} ${t.sym || 'ETH'}</td><td class="num">${price(t.price)}</td><td class="num">${usd(t.usd)}${t.pnl != null ? ` <span class="${t.pnl >= 0 ? 'up' : 'down'}">(${usd(t.pnl)})</span>` : ''}</td><td>${esc(t.reason)}${t.hash ? ` <a href="https://arbiscan.io/tx/${t.hash}" target="_blank" rel="noopener">kayıt</a>` : ''}</td></tr>`).join('');
   renderWallet();
 }
 function renderEvents() { $('events').innerHTML = events.length ? events.map(e => `<div class="${e.bad ? 'err' : ''}" style="margin:0 0 4px">${dt(e.t)}: ${esc(e.msg)}</div>`).join('') : 'Henüz olay yok.'; }
@@ -884,17 +1083,18 @@ const serverLive = () => !!(SRV && SRV.mode === 'live' && Date.now() - SRV.lastR
 function renderServer() {
   const on = !!(SRV && SRV.lastRun); $('srv').style.display = on ? '' : 'none'; $('localNote').style.display = on ? '' : 'none';
   if (!on) return;
-  const r = (SRV.rt || {})[SRV.mode] || {}, age = Date.now() - SRV.lastRun;
+  const r = Core.migrateRT((SRV.rt || {})[SRV.mode] || {}), age = Date.now() - SRV.lastRun, pos = Object.keys(r.positions), scan = SRV.scan || {};
+  const ups = Object.keys(scan).filter(s => scan[s].trendUp);
   let sub = SRV.mode === 'live' ? 'Gerçek parayla çalışıyor; telefonun kapalıyken de izler.' : 'Deneme modunda: sanal hesapla çalışıyor, gerçek işlem göndermiyor.';
   if (r.halted) sub = 'Güvenlik freni devrede. ' + r.halted.reason;
   else if (SRV.dataErr) sub += ' Son turda fiyat verisi alınamadı.';
-  else if (r.pos) sub += ' Pozisyonda.';
-  else sub += SRV.trendUp ? ' Nakitte, kırılım bekliyor.' : ' Nakitte, trend aşağı.';
+  else if (pos.length) sub += ' Açık pozisyonlar: ' + pos.map(s => `${s} (stop ${price(r.positions[s].stop)})`).join(', ') + '.';
+  else sub += ups.length ? ` Nakitte; yükseliş trendinde: ${ups.join(', ')}.` : ' Nakitte; taranan varlıkların hiçbiri yükseliş trendinde değil.';
   if (age > 2 * 3600e3) sub += ' Sunucu 2 saatten uzun süredir kayıt yazmadı; GitHub\'daki Actions sekmesini kontrol et.';
   $('srvSub').textContent = sub; $('srvSub').className = 'sub' + (r.halted || age > 2 * 3600e3 ? ' err' : '');
-  $('sEq').textContent = usd(SRV.eq); $('sPos').textContent = SRV.bal ? eth(SRV.bal.weth) : '–'; $('sStop').textContent = r.pos ? usd(r.pos.stop) : 'yok'; $('sAt').textContent = dt(SRV.lastRun);
-  const pf = (SRV.preflight || []).filter(p => !p.ok).map(p => `<div class="err" style="margin:0 0 4px">✗ ${esc(p.text)}</div>`).join('');
-  $('srvEv').innerHTML = pf + ((SRV.events || []).slice(0, 8).map(e => `<div class="${e.bad ? 'err' : ''}" style="margin:0 0 4px">${dt(e.t)}: ${esc(e.msg)}</div>`).join('') || 'Henüz olay yok.');
+  $('sEq').textContent = usd(SRV.eq); $('sPos').textContent = `${pos.length} / ${SRV.maxPositions || '–'}`; $('sCash').textContent = SRV.bal ? usd(SRV.bal.usdc) : '–'; $('sAt').textContent = dt(SRV.lastRun);
+  const pf = SRV.preflight || {}, bad = (pf.base || []).filter(p => !p.ok).map(p => p.text).concat(Object.keys(pf.assets || {}).filter(s => !pf.assets[s].ok).map(s => s + ': ' + pf.assets[s].text));
+  $('srvEv').innerHTML = bad.map(t => `<div class="err" style="margin:0 0 4px">✗ ${esc(t)}</div>`).join('') + ((SRV.events || []).slice(0, 8).map(e => `<div class="${e.bad ? 'err' : ''}" style="margin:0 0 4px">${dt(e.t)}: ${esc(e.msg)}</div>`).join('') || 'Henüz olay yok.');
 }
 
 /* ---------- Geçmiş testi ---------- */
@@ -902,41 +1102,59 @@ let btYears = 2, btRes = null;
 async function runBacktest() {
   $('btnBt').disabled = true; $('btMsg').textContent = 'Fiyat geçmişi indiriliyor…';
   try {
-    const bars = await fetchHistory(S.tf, btYears, f => { $('btMsg').textContent = `Fiyat geçmişi indiriliyor… %${Math.round(f * 100)}`; });
-    const r = Engine.backtest(bars, Object.assign({}, S, { capital: 1000 }));
+    const en = Core.enabled(S), need = Math.ceil(btYears * Engine.BARS_PER_YEAR[S.tf]) + S.emaSlow + S.don + 10, prog = {}, data = {}, skipped = [];
+    await Promise.all(en.map(async a => {
+      try { data[a.sym] = await Core.fetchHistory(F, a, S.tf, need, f => { prog[a.sym] = f; const v = Object.values(prog); $('btMsg').textContent = `Fiyat geçmişi indiriliyor… %${Math.round(v.reduce((x, y) => x + y, 0) / en.length * 100)}`; }); }
+      catch (e) { skipped.push(a.sym); }
+    }));
+    const r = Engine.backtestPortfolio(data, Object.assign({}, S, { capital: 1000, fees: Core.FEES }));
     if (r.error) throw new Error(r.error);
     btRes = r; const s = r.stats;
-    $('btMsg').textContent = `${dshort(r.eq[0].t)} – ${dshort(r.eq[r.eq.length - 1].t)}, kaynak: ${feedName || 'Binance'}`;
+    skipped.push(...en.map(a => a.sym).filter(x => data[x] && !r.syms.includes(x)));
+    $('btMsg').textContent = `${dshort(r.eq[0].t)} – ${dshort(r.eq[r.eq.length - 1].t)}, ${r.syms.join(', ')}` + (skipped.length ? `. Verisi yetersiz: ${skipped.join(', ')}` : '');
     $('btOut').style.display = '';
     const set = (id, v, good) => { $(id).textContent = pct(v); $(id).className = 'num ' + (good == null ? '' : good ? 'up' : 'down'); };
     set('bRet', s.ret, s.ret > 0); set('bBh', s.bhRet, s.bhRet > 0); set('bDD', -s.maxDD); set('bBhDD', -s.bhMaxDD);
     let v;
     if (s.ret <= 0) v = `Bu dönemde strateji para kaybetti (${pct(s.ret)}). Bu ayarlarla gerçek paraya geçmek için bir neden yok.`;
-    else if (s.ret < s.bhRet) v = `Strateji kâr etti (${pct(s.ret)}) ama ETH'yi alıp tutmanın (${pct(s.bhRet)}) gerisinde kaldı. Karşılığında en büyük düşüş %${nf(0).format(s.bhMaxDD * 100)} yerine %${nf(0).format(s.maxDD * 100)} oldu.`;
-    else v = `Strateji bu dönemde al-tut'u geçti (${pct(s.ret)} karşı ${pct(s.bhRet)}) ve en büyük düşüşü %${nf(0).format(s.maxDD * 100)} oldu (al-tut: %${nf(0).format(s.bhMaxDD * 100)}).`;
+    else if (s.ret < s.bhRet) v = `Strateji kâr etti (${pct(s.ret)}) ama varlıkları eşit paylarla alıp tutmanın (${pct(s.bhRet)}) gerisinde kaldı. Karşılığında en büyük düşüş %${nf(0).format(s.bhMaxDD * 100)} yerine %${nf(0).format(s.maxDD * 100)} oldu.`;
+    else v = `Strateji bu dönemde sepeti alıp tutmayı geçti (${pct(s.ret)} karşı ${pct(s.bhRet)}) ve en büyük düşüşü %${nf(0).format(s.maxDD * 100)} oldu (sepet: %${nf(0).format(s.bhMaxDD * 100)}).`;
     v += ` Dönemin ilk yarısı ${pct(s.h1)}, ikinci yarısı ${pct(s.h2)}.`;
     if (s.h1 * s.h2 < 0) v += ' İki yarı ters yönde: sonuç döneme çok bağlı.';
     if (s.nTrades < 15) v += ` Yalnızca ${s.nTrades} işlem var; bu kadar az işlemden güvenilir sonuç çıkmaz.`;
+    if (s.maxDD * 100 > S.maxDDPct) v += ` Testteki en büyük düşüş, canlıdaki %${S.maxDDPct} frenini aşıyor: canlı bot bu dönemde kendini durdururdu.`;
     $('btVerdict').textContent = v;
     const cfg = { fmt: x => '$' + nf(0).format(x), series: [
       { name: 'Strateji', color: css('--s1'), width: 2, pts: r.eq.map(e => [e.t, e.v]) },
-      { name: 'Al ve tut', color: css('--s2'), width: 2, pts: r.bh.map(e => [e.t, e.v]) }] };
+      { name: 'Sepeti al ve tut', color: css('--s2'), width: 2, pts: r.bh.map(e => [e.t, e.v]) }] };
     drawChart($('cvEq'), $('tipEq'), cfg, null); legend($('lgEq'), cfg.series);
     const row = (a, b, c) => `<tr><td>${a}</td><td class="num">${b}</td><td class="num">${c == null ? '' : c}</td></tr>`;
-    $('tblStats').querySelector('tbody').innerHTML = '<tr><th></th><th>Strateji</th><th>Al ve tut</th></tr>' +
+    $('tblStats').querySelector('tbody').innerHTML = '<tr><th></th><th>Strateji</th><th>Sepet</th></tr>' +
       row('Toplam getiri', pct(s.ret), pct(s.bhRet)) + row('Yıllık getiri', pct(s.cagr), pct(s.bhCagr)) +
       row('En büyük düşüş', pct(-s.maxDD), pct(-s.bhMaxDD)) + row('İlk yarı', pct(s.h1), pct(s.bhH1)) + row('İkinci yarı', pct(s.h2), pct(s.bhH2)) +
       row('İşlem sayısı', s.nTrades) + row('Kazanan işlem oranı', '%' + nf(0).format(s.winRate * 100)) +
       row('Kâr faktörü (kazanç / kayıp)', isFinite(s.profitFactor) ? nf(2).format(s.profitFactor) : '∞') +
       row('Piyasada geçen süre', '%' + nf(0).format(s.exposure * 100)) + row('Sharpe oranı', nf(2).format(s.sharpe)) +
-      row('Varsayılan maliyet', `%${nf(2).format(S.feePct + S.slipPct)} + $${nf(2).format(S.gasUsd)} / işlem`);
-    $('tblBt').querySelector('tbody').innerHTML = r.trades.slice().reverse().map(t => `<tr><td>${dshort(t.tIn)}</td><td>${dshort(t.tOut)}</td><td class="num">${usd(t.entry)}</td><td class="num">${usd(t.exit)}</td><td class="num ${t.pnl >= 0 ? 'up' : 'down'}">${usd(t.pnl)}</td><td>${t.reason === 'stop' ? 'stop' : 'trend bozuldu'}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Bu dönemde hiç işlem oluşmadı.</td></tr>';
+      row('Varsayılan maliyet', `varlığa göre %${nf(2).format(Math.min(...r.syms.map(x => Core.FEES[x])) + S.slipPct)}–%${nf(2).format(Math.max(...r.syms.map(x => Core.FEES[x])) + S.slipPct)} + $${nf(2).format(S.gasUsd)} / işlem`);
+    $('tblAssets').querySelector('tbody').innerHTML = r.perAsset.map(a => `<tr><td><b>${a.sym}</b></td><td class="num">${a.n}</td><td class="num">${a.wins}</td><td class="num ${a.pnl >= 0 ? 'up' : 'down'}">${usd(a.pnl)}</td></tr>`).join('');
+    $('tblBt').querySelector('tbody').innerHTML = r.trades.slice().reverse().map(t => `<tr><td><b>${t.sym}</b></td><td>${dshort(t.tIn)}</td><td>${dshort(t.tOut)}</td><td class="num ${t.pnl >= 0 ? 'up' : 'down'}">${usd(t.pnl)}</td><td>${t.reason === 'stop' ? 'stop' : 'trend bozuldu'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Bu dönemde hiç işlem oluşmadı.</td></tr>';
   } catch (e) { $('btMsg').textContent = 'Test çalıştırılamadı: ' + errMsg(e); }
   finally { $('btnBt').disabled = false; }
 }
 
 /* ---------- Cüzdan ---------- */
 const DERIVE_MSG = a => 'Trend Botu: bot cüzdanı anahtarı (v1)\n\nBu imza, bot cüzdanının anahtarını üretir. Yalnızca kendi Trend Botu sayfanda imzala. Başka bir site bu mesajı imzalamanı isterse reddet.\n\nAğ: Arbitrum One\nHesap: ' + a.toLowerCase();
+function loadEthers() {
+  if (window.ethers) return Promise.resolve();
+  return new Promise((res, rej) => {
+    (function next(i) {
+      if (i >= ETHERS_URLS.length) return rej(new Error('Cüzdan kütüphanesi (ethers) yüklenemedi. İnternet bağlantını kontrol et.'));
+      const s = document.createElement('script'); s.src = ETHERS_URLS[i];
+      s.onload = () => window.ethers ? res() : next(i + 1); s.onerror = () => next(i + 1);
+      document.head.appendChild(s);
+    })(0);
+  });
+}
 async function guard(btn, errEl, fn) {
   const b = $(btn), t = b.textContent; b.disabled = true; b.textContent = 'Bekleniyor…'; if (errEl) $(errEl).textContent = '';
   try { await fn(); } catch (e) { if (errEl) $(errEl).textContent = errMsg(e); else ev(errMsg(e), true); }
@@ -944,8 +1162,8 @@ async function guard(btn, errEl, fn) {
 }
 function resetWallet() {
   if (running && mode === 'live') setRunning(false);
-  if (mode === 'live') { mode = 'paper'; R = Object.assign(freshRT(), store.get('rt:paper', {})); }
-  Object.assign(W, { mm: null, signer: null, addr: null, bot: null, rpc: null, c: null, preOK: false, testOK: false, unlocked: false, bal: null });
+  if (mode === 'live') { mode = 'paper'; R = Core.migrateRT(Object.assign(Core.freshRT(), store.get('rt:paper', {}))); }
+  Object.assign(W, { mm: null, signer: null, addr: null, bot: null, rpc: null, c: null, pre: null, tested: {}, unlocked: false, bal: null });
   $('keyOut').style.display = 'none'; $('preOut').textContent = ''; $('testOut').textContent = ''; render();
 }
 async function connect() {
@@ -971,16 +1189,16 @@ async function derive() {
     if (sig2 !== sig) throw new Error('Bu hesap aynı mesaja her seferinde farklı imza üretiyor; bot cüzdanı güvenle geri getirilemez. Farklı bir MetaMask hesabı kullan.');
     store.set(key, w.address);
   } else if (known.toLowerCase() !== w.address.toLowerCase()) throw new Error('Üretilen cüzdan (' + w.address + ') daha önce bu hesap için kaydedilenle (' + known + ') aynı değil. Para yatırma; önce eski cüzdanı kontrol et.');
-  W.rpc = new E.JsonRpcProvider(S.rpc, 42161, { staticNetwork: true, batchMaxCount: 1 }); W.bot = w.connect(W.rpc);
-  W.c = { usdc: new E.Contract(ADDR.USDC, ERC20_ABI, W.bot), weth: new E.Contract(ADDR.WETH, ERC20_ABI, W.bot), router: new E.Contract(ADDR.ROUTER, ROUTER_ABI, W.bot), quoter: new E.Contract(ADDR.QUOTER, QUOTER_ABI, W.bot) };
-  W.unlocked = false; W.preOK = false; W.testOK = !!store.get('tested:' + w.address.toLowerCase(), false);
+  const rpc = new E.JsonRpcProvider(S.rpc, 42161, { staticNetwork: true, batchMaxCount: 1 });
+  Object.assign(W, Core.makeChain(E, w.connect(rpc), rpc));
+  W.unlocked = false; W.pre = null; W.tested = store.get('tested2:' + w.address.toLowerCase(), {});
   await refreshBal();
 }
-async function refreshBal() { if (W.bot) { W.bal = await Live.balances(); if (mode === 'live' && M) V = { bal: W.bal, eq: W.bal.usdc + W.bal.weth * M.live }; } }
-function resetLiveBaselines() { const k = 'rt:live:' + W.bot.address.toLowerCase(); const r = Object.assign(freshRT(), store.get(k, {})); r.peakEq = null; r.dayStartEq = null; r.dayKey = null; store.set(k, r); if (mode === 'live') { R.peakEq = null; R.dayStartEq = null; R.dayKey = null; } }
+async function refreshBal() { if (W.bot) { W.bal = await Core.chainBalances(window.ethers, W); if (mode === 'live' && M) V = { bal: W.bal, eq: eqOf(W.bal) }; } }
+function resetLiveBaselines() { const k = 'rt:live:' + W.bot.address.toLowerCase(); const r = Object.assign(Core.freshRT(), store.get(k, {})); r.peakEq = null; r.dayStartEq = null; r.dayKey = null; store.set(k, r); if (mode === 'live') { R.peakEq = null; R.dayStartEq = null; R.dayKey = null; } }
 async function depositUSDC() {
   const E = window.ethers, v = +$('depU').value; if (!(v > 0)) throw new Error('Tutar gir.');
-  const t = new E.Contract(ADDR.USDC, ERC20_ABI, W.signer), amt = E.parseUnits(v.toFixed(6), 6);
+  const t = new E.Contract(USDC, ERC20_ABI, W.signer), amt = E.parseUnits(v.toFixed(6), 6);
   if (await t.balanceOf(W.addr) < amt) throw new Error('MetaMask hesabında Arbitrum üzerinde bu kadar USDC yok.');
   const tx = await t.transfer(W.bot.address, amt); await tx.wait(); resetLiveBaselines(); await refreshBal(); ev(`Bot cüzdanına ${v} USDC yatırıldı.`);
 }
@@ -989,77 +1207,80 @@ async function depositETH() {
   const tx = await W.signer.sendTransaction({ to: W.bot.address, value: E.parseEther(String(v)) }); await tx.wait(); resetLiveBaselines(); await refreshBal(); ev(`Bot cüzdanına ${v} ETH yatırıldı.`);
 }
 async function withdrawAll() {
-  const E = window.ethers;
-  if (!await ask('Hepsini MetaMask\'a çek', 'Bot durdurulur. Açık ETH pozisyonu varsa önce USDC\'ye çevrilir, sonra tüm USDC ve kalan ETH şu adrese gönderilir:\n' + W.addr, 'Çek')) return;
+  if (!await ask('Hepsini MetaMask\'a çek', 'Bot durdurulur. Açık pozisyonlar önce USDC\'ye çevrilir, sonra tüm USDC ve kalan ETH şu adrese gönderilir:\n' + W.addr, 'Çek')) return;
   if (running && mode === 'live') await setRunning(false);
-  let b = await Live.balances();
-  if (b.rawW > 0n) {
-    if (!M) throw new Error('Fiyat verisi yokken ETH satılamaz. Biraz sonra tekrar dene.');
-    if (b.weth * M.live >= 0.5) { const r = await Live.sellRaw(b.rawW, M.live); mode === 'live' && logTrade({ side: 'Satış', qty: r.qty, price: r.price, usd: r.usd, reason: 'para çekme', hash: r.hash }); }
-    b = await Live.balances();
-  }
+  const E = window.ethers, L = live();
   try {
-  if (b.rawU > 0n) { const tx = await W.c.usdc.transfer(W.addr, b.rawU); await tx.wait(); }
-  let swept = true;
-  try {
-  const bal = await W.rpc.getBalance(W.bot.address), fee = await W.rpc.getFeeData();
-  const gas = await W.rpc.estimateGas({ from: W.bot.address, to: W.addr, value: 1n });
-  const price = fee.maxFeePerGas || fee.gasPrice, cost = gas * price * 13n / 10n;
-  const feeOpt = fee.maxFeePerGas ? { maxFeePerGas: fee.maxFeePerGas, maxPriorityFeePerGas: fee.maxPriorityFeePerGas || 0n } : { gasPrice: fee.gasPrice };
-  if (bal > cost) { const tx = await W.bot.sendTransaction(Object.assign({ to: W.addr, value: bal - cost, gasLimit: gas * 12n / 10n }, feeOpt)); await tx.wait(); }
-  } catch (e) { swept = false; }
-  ev(swept ? 'Bot cüzdanındaki para MetaMask hesabına gönderildi.' : 'USDC MetaMask hesabına gönderildi. Kalan az miktarda ETH gönderilemedi; bot cüzdanında duruyor, tekrar deneyebilirsin.', !swept);
-  } finally { if (mode === 'live') R.pos = null; resetLiveBaselines(); await refreshBal(); }
+    let b = await L.balances();
+    for (const a of ASSETS) {
+      if (!(b.raw[a.sym] > 0n)) continue;
+      const m = M && M.mkt[a.sym] ? M.mkt[a.sym].live : null;
+      if (!m) { const r = await Core.fetchMarket(F, Object.assign({}, S, { assets: [a.sym] }), Date.now()); if (!r.mkt[a.sym]) throw new Error(a.sym + ' için fiyat verisi yok; satılamadı. Biraz sonra tekrar dene.'); M = M || { mkt: {}, errs: {}, at: Date.now() }; M.mkt[a.sym] = r.mkt[a.sym]; }
+      const px = M.mkt[a.sym].live;
+      if (b.tok[a.sym] * px >= 0.5) { const r = await L.sellRaw(a.sym, b.raw[a.sym], px); if (mode === 'live') logTrade({ sym: a.sym, side: 'Satış', qty: r.qty, price: r.price, usd: r.usd, reason: 'para çekme', hash: r.hash }); }
+    }
+    b = await L.balances();
+    if (b.raw.usdc > 0n) { const tx = await W.c.usdc.transfer(W.addr, b.raw.usdc); await tx.wait(); }
+    let swept = true;
+    try {
+      const bal = await W.rpc.getBalance(W.bot.address), fee = await W.rpc.getFeeData();
+      const gas = await W.rpc.estimateGas({ from: W.bot.address, to: W.addr, value: 1n });
+      const gp = fee.maxFeePerGas || fee.gasPrice, cost = gas * gp * 13n / 10n;
+      const feeOpt = fee.maxFeePerGas ? { maxFeePerGas: fee.maxFeePerGas, maxPriorityFeePerGas: fee.maxPriorityFeePerGas || 0n } : { gasPrice: fee.gasPrice };
+      if (bal > cost) { const tx = await W.bot.sendTransaction(Object.assign({ to: W.addr, value: bal - cost, gasLimit: gas * 12n / 10n }, feeOpt)); await tx.wait(); }
+    } catch (e) { swept = false; }
+    ev(swept ? 'Bot cüzdanındaki para MetaMask hesabına gönderildi.' : 'USDC MetaMask hesabına gönderildi. Kalan az miktarda ETH gönderilemedi; bot cüzdanında duruyor, tekrar deneyebilirsin.', !swept);
+  } finally { if (mode === 'live') R.positions = {}; resetLiveBaselines(); await refreshBal(); }
 }
 async function preflight() {
-  const E = window.ethers, out = [], line = (ok, t) => out.push(`<div class="${ok ? 'ok' : 'err'}">${ok ? '✓' : '✗'} ${esc(t)}</div>`);
-  let all = true; const chk = (ok, t) => { line(ok, t); if (!ok) all = false; };
-  try {
-    chk((await W.rpc.getNetwork()).chainId === CHAIN_ID, 'Ağ: Arbitrum One');
-    const [su, du, sw, dw] = await Promise.all([W.c.usdc.symbol(), W.c.usdc.decimals(), W.c.weth.symbol(), W.c.weth.decimals()]);
-    chk(su === 'USDC' && Number(du) === 6, `USDC sözleşmesi (${su}, ${du} ondalık)`);
-    chk(sw === 'WETH' && Number(dw) === 18, `WETH sözleşmesi (${sw}, ${dw} ondalık)`);
-    const [cr, cq] = await Promise.all([W.rpc.getCode(ADDR.ROUTER), W.rpc.getCode(ADDR.QUOTER)]);
-    chk(cr.length > 2 && cq.length > 2, 'Uniswap v3 sözleşmeleri zincirde mevcut');
-    if (!M) chk(false, 'Piyasa fiyatı alınamadı');
-    else {
-      const q = await W.c.quoter.quoteExactInputSingle.staticCall({ tokenIn: ADDR.USDC, tokenOut: ADDR.WETH, amountIn: 100000000n, fee: POOL_FEE, sqrtPriceLimitX96: 0n });
-      const px = 100 / +E.formatUnits(q[0], 18), dev = Math.abs(px / M.live - 1) * 100;
-      chk(dev <= S.maxDevPct, `Borsa fiyatı ${usd(px)}, piyasa ${usd(M.live)} (fark %${nf(2).format(dev)})`);
-    }
-    await refreshBal();
-    chk(W.bal.eth >= MIN_GAS_ETH, `Ağ ücreti için ETH: ${nf(5).format(W.bal.eth)}`);
-  } catch (e) { chk(false, 'Kontrol tamamlanamadı: ' + errMsg(e)); }
-  W.preOK = all; $('preOut').innerHTML = out.join('');
+  if (!M) throw new Error('Fiyat verisi yok.');
+  const pf = await Core.preflight(window.ethers, W, S, M.mkt); await refreshBal();
+  const gasOK = W.bal.eth >= MIN_GAS_ETH;
+  pf.base.push({ ok: gasOK, text: `Ağ ücreti için ETH: ${nf(5).format(W.bal.eth)}` }); pf.baseOK = pf.baseOK && gasOK;
+  W.pre = pf;
+  const line = (ok, t) => `<div class="${ok ? 'ok' : 'err'}">${ok ? '✓' : '✗'} ${esc(t)}</div>`;
+  $('preOut').innerHTML = pf.base.map(x => line(x.ok, x.text)).join('') + Object.keys(pf.assets).map(s => line(pf.assets[s].ok, s + ': ' + pf.assets[s].text)).join('') +
+    (pf.baseOK && pf.tradeable.length ? '' : line(false, 'İşlem yapılabilecek varlık yok.'));
 }
 async function testTrade() {
-  const E = window.ethers; if (!M) throw new Error('Fiyat verisi yok.');
+  const E = window.ethers, L = live(); if (!M) throw new Error('Fiyat verisi yok.');
   await refreshBal(); if (W.bal.usdc < 1) throw new Error('Test için bot cüzdanında en az 1 USDC olmalı.');
-  $('testOut').textContent = 'Alım yapılıyor…';
-  const b = await swap(ADDR.USDC, ADDR.WETH, 1000000n, M.live, 'buy');
-  $('testOut').textContent = 'Geri satılıyor…';
-  const s = await swap(ADDR.WETH, ADDR.USDC, b.got, M.live, 'sell');
-  const back = +E.formatUnits(s.got, 6);
-  W.testOK = true; store.set('tested:' + W.bot.address.toLowerCase(), true); await refreshBal();
-  $('testOut').innerHTML = `<div class="ok">✓ Çalıştı. 1 USDC gitti, ${nf(4).format(back)} USDC döndü (gidiş-dönüş borsa maliyeti %${nf(2).format((1 - back) * 100)}, ağ ücreti hariç).</div><div><a href="https://arbiscan.io/tx/${b.hash}" target="_blank" rel="noopener">Alım kaydı</a>, <a href="https://arbiscan.io/tx/${s.hash}" target="_blank" rel="noopener">satış kaydı</a></div>`;
+  const out = [], key = 'tested2:' + W.bot.address.toLowerCase();
+  for (const s of W.pre.tradeable) {
+    $('testOut').innerHTML = out.join('') + `<div>${s} deneniyor…</div>`;
+    try {
+      const px = M.mkt[s].live, b = await Core.swap(E, W, S, bySym[s], 'buy', 1000000n, px), r = await Core.swap(E, W, S, bySym[s], 'sell', b.got, px);
+      const back = +E.formatUnits(r.got, 6); W.tested[s] = true;
+      out.push(`<div class="ok">✓ ${s}: 1 USDC gitti, ${nf(4).format(back)} USDC döndü (gidiş-dönüş %${nf(2).format((1 - back) * 100)}, ağ ücreti hariç). <a href="https://arbiscan.io/tx/${b.hash}" target="_blank" rel="noopener">alım</a>, <a href="https://arbiscan.io/tx/${r.hash}" target="_blank" rel="noopener">satış</a></div>`);
+    } catch (e) { W.tested[s] = false; out.push(`<div class="err">✗ ${s}: ${esc(errMsg(e))}</div>`); }
+    store.set(key, W.tested);
+  }
+  await refreshBal();
+  $('testOut').innerHTML = out.join('') + (tradeable().length ? `<div>Gerçek parada işlem yapılacak varlıklar: <b>${tradeable().join(', ')}</b></div>` : '');
 }
 function renderWallet() {
-  const on = (id, c) => $(id).classList.toggle('done', !!c);
-  on('st1', W.addr); on('st2', W.bot); on('st3', W.bal && W.bal.usdc >= 1 && W.bal.eth >= MIN_GAS_ETH); on('st4', W.preOK); on('st5', W.testOK); on('st6', W.unlocked);
+  const on = (id, c) => $(id).classList.toggle('done', !!c), tr = tradeable();
+  on('st1', W.addr); on('st2', W.bot); on('st3', W.bal && W.bal.usdc >= 1 && W.bal.eth >= MIN_GAS_ETH); on('st4', W.pre && W.pre.baseOK && W.pre.tradeable.length); on('st5', tr.length); on('st6', W.unlocked);
   $('mmAddr').style.display = W.addr ? '' : 'none'; $('mmAddr').textContent = W.addr || '';
   $('botAddr').style.display = W.bot ? '' : 'none'; $('botAddr').textContent = W.bot ? W.bot.address : '';
   $('keyRow').style.display = W.bot ? '' : 'none';
-  const lock = id => $(id).textContent === 'Bekleniyor…';
-  const en = (id, c) => { if (!lock(id)) $(id).disabled = !c; };
+  const lock = id => $(id).textContent === 'Bekleniyor…', en = (id, c) => { if (!lock(id)) $(id).disabled = !c; };
   en('btnDerive', W.addr); ['btnDepU', 'btnDepE', 'btnWithdraw', 'btnPre'].forEach(b => en(b, W.bot));
-  en('btnTest', W.bot && W.preOK); en('btnUnlock', W.bot && W.preOK && W.testOK && $('ack1').checked && $('ack2').checked && !W.unlocked);
+  en('btnTest', W.bot && W.pre && W.pre.baseOK && W.pre.tradeable.length); en('btnUnlock', W.bot && W.pre && W.pre.baseOK && tr.length && $('ack1').checked && $('ack2').checked && !W.unlocked);
   const b = mode === 'live' && V ? V.bal : W.bal;
-  $('bU').textContent = b ? nf(2).format(b.usdc) : '–'; $('bW').textContent = b ? nf(5).format(b.weth) : '–'; $('bE').textContent = b && b.eth != null ? nf(5).format(b.eth) : '–';
-  $('unlockOut').innerHTML = W.unlocked ? '<span class="ok">✓ Açıldı. Durum sekmesinde "Gerçek para" modunu seçip botu başlatabilirsin.</span>' : '';
+  $('bU').textContent = b ? nf(2).format(b.usdc) : '–'; $('bE').textContent = b && b.eth != null ? nf(5).format(b.eth) : '–';
+  $('bTok').innerHTML = b ? ASSETS.filter(a => b.tok[a.sym] > 0).map(a => `${a.token} <b class="num">${nf(a.dec === 8 ? 6 : 5).format(b.tok[a.sym])}</b>`).join(' &nbsp; ') : '';
+  $('unlockOut').innerHTML = W.unlocked ? `<span class="ok">✓ Açıldı (${tr.join(', ')}). Durum sekmesinde "Gerçek para" modunu seçip botu başlatabilirsin.</span>` : '';
 }
 
 /* ---------- Ayarlar ---------- */
 function buildSettings() {
+  $('assetBox').innerHTML = ASSETS.map(a => `<label class="chip"><input type="checkbox" data-a="${a.sym}"${S.assets.includes(a.sym) ? ' checked' : ''}>${a.sym}</label>`).join('');
+  document.querySelectorAll('[data-a]').forEach(el => el.onchange = () => {
+    const set = ASSETS.map(a => a.sym).filter(s => document.querySelector(`[data-a="${s}"]`).checked);
+    if (!set.length) { el.checked = true; ev('En az bir varlık seçili olmalı.', true); return; }
+    S.assets = set; store.set('settings', S); tick();
+  });
   for (const [form, fields] of Object.entries(FIELDS)) {
     $(form).innerHTML = fields.map(([k, label, help, opt]) => {
       const inp = opt && typeof opt === 'object' ? `<select data-k="${k}">${Object.entries(opt).map(([v, t]) => `<option value="${v}"${S[k] === v ? ' selected' : ''}>${t}</option>`).join('')}</select>`
@@ -1069,11 +1290,12 @@ function buildSettings() {
   }
   document.querySelectorAll('[data-k]').forEach(el => el.onchange = () => {
     const k = el.dataset.k; let v = el.value;
-    if (typeof DEFAULTS[k] === 'number') { v = parseFloat(String(v).replace(',', '.')); if (!(v > 0) || !isFinite(v)) { el.value = S[k]; return; } if (['emaFast', 'emaSlow', 'don', 'atrN', 'cooldown'].includes(k)) v = Math.round(v); }
+    if (typeof DEFAULTS[k] === 'number') { v = parseFloat(String(v).replace(',', '.')); if (!(v > 0) || !isFinite(v)) { el.value = S[k]; return; } if (['emaFast', 'emaSlow', 'don', 'atrN', 'cooldown', 'maxPositions'].includes(k)) v = Math.max(1, Math.round(v)); }
     if (k === 'emaFast' && v >= S.emaSlow || k === 'emaSlow' && v <= S.emaFast) { el.value = S[k]; ev('Hızlı ortalama, yavaş ortalamadan kısa olmalı.', true); return; }
     if (k === 'tf' && running) { el.value = S[k]; ev('Mum süresini değiştirmek için önce botu durdur.', true); return; }
-    S[k] = v; store.set('settings', S);
-    if (k === 'tf') { M = null; R.lastBarT = null; tick(); }
+    S[k] = v; el.value = v; store.set('settings', S);
+    if (k === 'tf') { M = null; R.barT = {}; }
+    tick();
   });
 }
 
@@ -1092,12 +1314,12 @@ $('btnRun').onclick = async () => {
     if (!(W.bot && W.unlocked)) return setMode('live');
     await loadServer();
     if (serverLive()) return ev('Sunucu botu bu cüzdanla gerçek parayla çalışıyor. Aynı cüzdanda iki bot çalıştırılmaz; tarayıcıda yalnızca simülasyon kullan.', true);
-    if (!await ask('Gerçek parayla başlat', 'Bot, cüzdanındaki USDC ile kendi kararıyla alım satım yapacak. Kâr garantisi yoktur. Sayfa kapanırsa ya da telefon uykuya geçerse bot ve stop durur.', 'Başlat')) return;
+    if (!await ask('Gerçek parayla başlat', `Bot, cüzdanındaki USDC ile ${tradeable().join(', ')} arasında kendi kararıyla alım satım yapacak. Kâr garantisi yoktur. Sayfa kapanırsa ya da telefon uykuya geçerse bot ve stoplar durur.`, 'Başlat')) return;
   }
   setRunning(true);
 };
 $('modePaper').onclick = () => setMode('paper'); $('modeLive').onclick = () => setMode('live');
-$('btnResetHalt').onclick = async () => { if (await ask('Freni kaldır', 'Bot yeniden işlem yapabilir hale gelir. Zirve değeri bugünkü hesaptan yeniden başlar.', 'Kaldır')) { R.halted = null; R.errCount = 0; R.peakEq = V ? V.eq : null; save(); render(); } };
+$('btnResetHalt').onclick = async () => { if (await ask('Freni kaldır', 'Bot yeniden alım yapabilir hale gelir. Zirve değeri bugünkü hesaptan yeniden başlar.', 'Kaldır')) { R.halted = null; R.errCount = 0; R.peakEq = V ? V.eq : null; save(); render(); } };
 $('btnBt').onclick = runBacktest;
 document.querySelectorAll('[data-y]').forEach(b => b.onclick = () => { btYears = +b.dataset.y; document.querySelectorAll('[data-y]').forEach(x => x.classList.toggle('on', x === b)); });
 $('btnConnect').onclick = () => guard('btnConnect', 'e1', connect);
@@ -1109,16 +1331,16 @@ $('btnKey').onclick = async () => {
 $('btnDepU').onclick = () => guard('btnDepU', 'e3', depositUSDC);
 $('btnDepE').onclick = () => guard('btnDepE', 'e3', depositETH);
 $('btnWithdraw').onclick = () => guard('btnWithdraw', 'e3', withdrawAll);
-$('btnPre').onclick = () => guard('btnPre', null, preflight);
+$('btnPre').onclick = () => guard('btnPre', null, async () => { try { await preflight(); } catch (e) { $('preOut').innerHTML = `<div class="err">✗ ${esc(errMsg(e))}</div>`; } });
 $('btnTest').onclick = () => guard('btnTest', null, async () => { try { await testTrade(); } catch (e) { $('testOut').innerHTML = `<div class="err">✗ ${esc(errMsg(e))}</div>`; } });
 $('ack1').onchange = $('ack2').onchange = renderWallet;
 $('btnUnlock').onclick = () => { W.unlocked = true; renderWallet(); };
-$('btnDefaults').onclick = async () => { if (running) return ev('Önce botu durdur.', true); if (await ask('Varsayılanlara dön', 'Tüm ayarlar ilk değerlerine döner.', 'Dön')) { S = Object.assign({}, DEFAULTS); store.set('settings', S); buildSettings(); M = null; tick(); } };
+$('btnDefaults').onclick = async () => { if (running) return ev('Önce botu durdur.', true); if (await ask('Varsayılanlara dön', 'Tüm ayarlar ilk değerlerine döner.', 'Dön')) { S = Object.assign({}, DEFAULTS, { assets: DEFAULTS.assets.slice() }); store.set('settings', S); buildSettings(); M = null; tick(); } };
 $('btnResetPaper').onclick = async () => {
   if (running && mode === 'paper') return ev('Önce botu durdur.', true);
   if (await ask('Simülasyonu sıfırla', `Simülasyon hesabı ${usd(S.paperCash)} ile yeniden başlar; simülasyon işlem günlüğü silinir.`, 'Sıfırla')) {
-    P = { usdc: S.paperCash, weth: 0 }; store.set('paper', P); store.set('rt:paper', freshRT()); tradeLog = tradeLog.filter(t => t.mode !== 'paper'); store.set('log', tradeLog);
-    if (mode === 'paper') { R = freshRT(); V = null; } tick();
+    P = { usdc: S.paperCash, tok: {} }; store.set('paper', P); store.set('rt:paper', Core.freshRT()); tradeLog = tradeLog.filter(t => t.mode !== 'paper'); store.set('log', tradeLog);
+    if (mode === 'paper') { R = Core.freshRT(); V = null; } tick();
   }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });

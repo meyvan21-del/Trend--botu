@@ -464,11 +464,12 @@ const Engine = (() => {
       A[s] = { b, ind, map, cost: ((p.fees && p.fees[s] != null ? p.fees[s] : p.feePct || 0.05) + p.slipPct) / 100, qty: 0, pos: null, pending: null, strength: 0, cool: -Infinity, last: b[r].c, n: 0, pnl: 0, wins: 0, bars: 0 };
       if (b[r].t > start) start = b[r].t;
     }
+    if (p.startAt != null) start = p.startAt;   // geniş taramada sonradan listelenen varlıklar başlangıcı geciktirmesin
     const names = Object.keys(A); if (!names.length) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
     const times = [...tset].filter(t => t >= start).sort((x, y) => x - y);
     if (times.length < 3) return { error: 'Yeterli veri yok', eq: [], bh: [], trades: [] };
     let cash = capital, barsIn = 0; const eq = [], bh = [], trades = [], p0 = {};
-    for (const s of names) { const i = A[s].map.get(times[0]); p0[s] = i != null ? A[s].b[i].c : A[s].last; }
+    for (const s of names) { const i = A[s].map.get(times[0]); p0[s] = i != null ? A[s].b[i].c : A[s].last; A[s].last = p0[s]; }
     const closeAt = (s, t, px, reason) => {
       const a = A[s], out = a.qty * px * (1 - a.cost) - gas, pnl = out - a.pos.usdIn; cash += out;
       trades.push({ sym: s, tIn: a.pos.t, tOut: t, entry: a.pos.entry, exit: px, usdIn: a.pos.usdIn, usdOut: out, pnl, reason });
@@ -498,7 +499,7 @@ const Engine = (() => {
           if (bar.c > a.pos.hi) a.pos.hi = bar.c;
           const ns = a.pos.hi - p.atrK * a.ind.a[i]; if (ns > a.pos.stop) a.pos.stop = ns;
           if (trendBroken(i, a.ind)) a.pending = 'sell';
-        } else if (k >= a.cool && entryOK(i, a.b, a.ind)) { a.pending = 'buy'; a.strength = (bar.c - a.ind.d[i]) / a.ind.a[i]; }
+        } else if (k >= a.cool && entryOK(i, a.b, a.ind) && (!p.canEnter || p.canEnter(s, t))) { a.pending = 'buy'; a.strength = (bar.c - a.ind.d[i]) / a.ind.a[i]; }
         a.last = bar.c;
       }
       if (any) barsIn++;
@@ -550,8 +551,8 @@ const Core = (() => {
   const ROUTER_ABI = ['function exactInput((bytes path,address recipient,uint256 amountIn,uint256 amountOutMinimum) params) payable returns (uint256 amountOut)', 'function multicall(uint256 deadline, bytes[] data) payable returns (bytes[])'];
 
   const DEFAULTS = {
-    tf: '4h', emaFast: 50, emaSlow: 200, don: 20, atrN: 14, atrK: 3, riskPct: 2, maxPosPct: 34, maxPositions: 3, cooldown: 3,
-    assets: ['ETH', 'BTC', 'ARB', 'LINK', 'GMX'],
+    tf: '4h', emaFast: 50, emaSlow: 200, don: 20, atrN: 14, atrK: 3, riskPct: 2, maxPosPct: 50, maxPositions: 2, cooldown: 3,
+    assets: ['ETH', 'BTC'],   // gerçek veriyle yapılan karşılaştırmada en tutarlı çıkan liste
     dailyLossPct: 3, maxDDPct: 15, maxSlipPct: 0.3, maxDevPct: 1, minTradeUsd: 5,
     rpc: DEFAULT_RPC, paperCash: 1000, slipPct: 0.05, gasUsd: 0.1
   };
@@ -834,7 +835,7 @@ const F = (...a) => window.fetch(...a);
 /* ---------- Ayarlar ---------- */
 const DEFAULTS = Core.DEFAULTS;
 let S = Object.assign({}, DEFAULTS, store.get('settings', {}));
-if (store.get('settingsV', 1) < 2) { S.maxPosPct = DEFAULTS.maxPosPct; S.assets = DEFAULTS.assets.slice(); S.maxPositions = DEFAULTS.maxPositions; store.set('settingsV', 2); store.set('settings', S); }
+if (store.get('settingsV', 1) < 3) { S.maxPosPct = DEFAULTS.maxPosPct; S.assets = DEFAULTS.assets.slice(); S.maxPositions = DEFAULTS.maxPositions; store.set('settingsV', 3); store.set('settings', S); }
 const FIELDS = {
   formStrat: [
     ['tf', 'Mum süresi', 'Kısa süre daha çok işlem ve daha çok ücret demektir.', { '1h': '1 saat', '4h': '4 saat', '1d': '1 gün' }],

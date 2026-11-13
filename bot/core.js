@@ -25,8 +25,8 @@ const Core = (() => {
   const ROUTER_ABI = ['function exactInput((bytes path,address recipient,uint256 amountIn,uint256 amountOutMinimum) params) payable returns (uint256 amountOut)', 'function multicall(uint256 deadline, bytes[] data) payable returns (bytes[])'];
 
   const DEFAULTS = {
-    tf: '4h', emaFast: 50, emaSlow: 200, don: 20, atrN: 14, atrK: 3, riskPct: 2, maxPosPct: 34, maxPositions: 3, cooldown: 3,
-    assets: ['ETH', 'BTC', 'ARB', 'LINK', 'GMX'],
+    tf: '4h', emaFast: 50, emaSlow: 200, don: 20, atrN: 14, atrK: 3, riskPct: 2, maxPosPct: 50, maxPositions: 2, cooldown: 3,
+    assets: ['ETH', 'BTC'],   // gerçek veriyle yapılan karşılaştırmada en tutarlı çıkan liste
     dailyLossPct: 3, maxDDPct: 15, maxSlipPct: 0.3, maxDevPct: 1, minTradeUsd: 5,
     rpc: DEFAULT_RPC, paperCash: 1000, slipPct: 0.05, gasUsd: 0.1
   };

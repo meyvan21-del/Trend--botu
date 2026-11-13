@@ -1,6 +1,6 @@
 # Trend Botu
 
-Arbitrum One üzerinde çalışan trend takip botu. Bir varlık listesini (ETH, BTC, ARB, LINK, GMX) tarar; trendi yukarı olan ve yeni zirve yapan varlıkları USDC ile alır, trend bozulunca ya da stop çalışınca satar. Kâr garantisi yoktur.
+Arbitrum One üzerinde çalışan trend takip botu. Bir varlık listesini tarar (varsayılan: BTC ve ETH; ARB, LINK ve GMX ayarlardan eklenebilir); trendi yukarı olan ve yeni zirve yapan varlıkları USDC ile alır, trend bozulunca ya da stop çalışınca satar. Kâr garantisi yoktur.
 
 ## Parçalar
 - `index.html`: kontrol paneli (GitHub Pages bunu yayınlar). MetaMask bağlantısı, bot cüzdanı, para yatırma/çekme, geçmiş testi, simülasyon.

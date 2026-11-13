@@ -1,0 +1,548 @@
+{
+ "at": 1794598290945,
+ "tf": "4h",
+ "years": 3,
+ "from": 1699531200000,
+ "to": 1794571200000,
+ "nSymbols": 464,
+ "failed": 0,
+ "btcHold": 0.8579336868009455,
+ "ethHold": -0.04918379180548593,
+ "note": "Listeden kaldırılmış coinler veride yok; sonuçlar gerçekte olacağından iyi görünür. Küçük coinlerde gerçek kayma varsayılandan yüksektir.",
+ "variants": [
+  {
+   "name": "Yalnızca ETH",
+   "ret": 0.2785,
+   "cagr": 0.0849,
+   "maxDD": 0.2106,
+   "h1": 0.03,
+   "h2": 0.2412,
+   "nTrades": 61,
+   "winRate": 0.2131,
+   "profitFactor": 1.4096,
+   "exposure": 0.2125,
+   "sharpe": 0.6567,
+   "tradedSymbols": 1,
+   "best": [
+    [
+     "ETH",
+     278
+    ]
+   ],
+   "worst": [
+    [
+     "ETH",
+     278
+    ]
+   ],
+   "top3share": 1
+  },
+  {
+   "name": "BTC + ETH",
+   "ret": 0.338,
+   "cagr": 0.1014,
+   "maxDD": 0.2259,
+   "h1": 0.323,
+   "h2": 0.0114,
+   "nTrades": 118,
+   "winRate": 0.2881,
+   "profitFactor": 1.2749,
+   "exposure": 0.3019,
+   "sharpe": 0.6395,
+   "tradedSymbols": 2,
+   "best": [
+    [
+     "BTC",
+     182
+    ],
+    [
+     "ETH",
+     156
+    ]
+   ],
+   "worst": [
+    [
+     "ETH",
+     156
+    ],
+    [
+     "BTC",
+     182
+    ]
+   ],
+   "top3share": 1
+  },
+  {
+   "name": "Hacimce ilk 10",
+   "ret": 0.6271,
+   "cagr": 0.1753,
+   "maxDD": 0.2688,
+   "h1": 0.6663,
+   "h2": -0.0235,
+   "nTrades": 444,
+   "winRate": 0.3176,
+   "profitFactor": 1.1843,
+   "exposure": 0.5717,
+   "sharpe": 0.6447,
+   "tradedSymbols": 40,
+   "best": [
+    [
+     "ZEC",
+     331
+    ],
+    [
+     "XRP",
+     174
+    ],
+    [
+     "BNB",
+     155
+    ],
+    [
+     "BTC",
+     86
+    ],
+    [
+     "ENA",
+     70
+    ]
+   ],
+   "worst": [
+    [
+     "ADA",
+     -70
+    ],
+    [
+     "LINK",
+     -56
+    ],
+    [
+     "WIF",
+     -47
+    ],
+    [
+     "WLD",
+     -36
+    ],
+    [
+     "PEOPLE",
+     -34
+    ]
+   ],
+   "top3share": 0.5564
+  },
+  {
+   "name": "Hacimce ilk 30",
+   "ret": -0.5514,
+   "cagr": -0.2335,
+   "maxDD": 0.6743,
+   "h1": -0.2677,
+   "h2": -0.3874,
+   "nTrades": 679,
+   "winRate": 0.3019,
+   "profitFactor": 0.83,
+   "exposure": 0.7293,
+   "sharpe": -0.3786,
+   "tradedSymbols": 109,
+   "best": [
+    [
+     "NEAR",
+     172
+    ],
+    [
+     "SUI",
+     116
+    ],
+    [
+     "ZEC",
+     113
+    ],
+    [
+     "SEI",
+     105
+    ],
+    [
+     "BNB",
+     85
+    ]
+   ],
+   "worst": [
+    [
+     "ENA",
+     -95
+    ],
+    [
+     "INJ",
+     -80
+    ],
+    [
+     "AVAX",
+     -69
+    ],
+    [
+     "AAVE",
+     -56
+    ],
+    [
+     "PEOPLE",
+     -55
+    ]
+   ],
+   "top3share": 0.3988
+  },
+  {
+   "name": "Hacimce ilk 100",
+   "ret": -0.9561,
+   "cagr": -0.6456,
+   "maxDD": 0.9703,
+   "h1": -0.6424,
+   "h2": -0.8773,
+   "nTrades": 1081,
+   "winRate": 0.2757,
+   "profitFactor": 0.7624,
+   "exposure": 0.9009,
+   "sharpe": -1.393,
+   "tradedSymbols": 259,
+   "best": [
+    [
+     "WLD",
+     154
+    ],
+    [
+     "SUPER",
+     119
+    ],
+    [
+     "AUCTION",
+     112
+    ],
+    [
+     "SEI",
+     107
+    ],
+    [
+     "SUI",
+     79
+    ]
+   ],
+   "worst": [
+    [
+     "JTO",
+     -94
+    ],
+    [
+     "MAGIC",
+     -72
+    ],
+    [
+     "LDO",
+     -67
+    ],
+    [
+     "ENA",
+     -61
+    ],
+    [
+     "CFX",
+     -61
+    ]
+   ],
+   "top3share": 0.2455
+  },
+  {
+   "name": "Bütün piyasa",
+   "ret": -0.9752,
+   "cagr": -0.7066,
+   "maxDD": 0.9762,
+   "h1": -0.7138,
+   "h2": -0.9133,
+   "nTrades": 1241,
+   "winRate": 0.2627,
+   "profitFactor": 0.7343,
+   "exposure": 0.9026,
+   "sharpe": -1.5087,
+   "tradedSymbols": 337,
+   "best": [
+    [
+     "SEI",
+     114
+    ],
+    [
+     "AUCTION",
+     79
+    ],
+    [
+     "SUI",
+     73
+    ],
+    [
+     "BEL",
+     66
+    ],
+    [
+     "POLYX",
+     58
+    ]
+   ],
+   "worst": [
+    [
+     "LDO",
+     -53
+    ],
+    [
+     "CTSI",
+     -52
+    ],
+    [
+     "MAGIC",
+     -44
+    ],
+    [
+     "FLOKI",
+     -41
+    ],
+    [
+     "FTT",
+     -39
+    ]
+   ],
+   "top3share": 0.1894
+  },
+  {
+   "name": "Hacimce ilk 10 + piyasa filtresi",
+   "ret": 0.5343,
+   "cagr": 0.1526,
+   "maxDD": 0.2769,
+   "h1": 0.5781,
+   "h2": -0.0277,
+   "nTrades": 367,
+   "winRate": 0.3106,
+   "profitFactor": 1.1948,
+   "exposure": 0.4136,
+   "sharpe": 0.6062,
+   "tradedSymbols": 37,
+   "best": [
+    [
+     "ZEC",
+     247
+    ],
+    [
+     "BNB",
+     186
+    ],
+    [
+     "XRP",
+     126
+    ],
+    [
+     "ENA",
+     118
+    ],
+    [
+     "BTC",
+     93
+    ]
+   ],
+   "worst": [
+    [
+     "ADA",
+     -67
+    ],
+    [
+     "SOL",
+     -59
+    ],
+    [
+     "LINK",
+     -49
+    ],
+    [
+     "TRX",
+     -43
+    ],
+    [
+     "WLD",
+     -41
+    ]
+   ],
+   "top3share": 0.5222
+  },
+  {
+   "name": "Hacimce ilk 30 + piyasa filtresi",
+   "ret": -0.2669,
+   "cagr": -0.0979,
+   "maxDD": 0.5294,
+   "h1": -0.1506,
+   "h2": -0.1369,
+   "nTrades": 494,
+   "winRate": 0.3097,
+   "profitFactor": 0.9047,
+   "exposure": 0.4784,
+   "sharpe": -0.0626,
+   "tradedSymbols": 89,
+   "best": [
+    [
+     "NEAR",
+     180
+    ],
+    [
+     "BNB",
+     111
+    ],
+    [
+     "SEI",
+     103
+    ],
+    [
+     "ZEC",
+     92
+    ],
+    [
+     "DOGE",
+     89
+    ]
+   ],
+   "worst": [
+    [
+     "ENA",
+     -94
+    ],
+    [
+     "AVAX",
+     -66
+    ],
+    [
+     "BOME",
+     -52
+    ],
+    [
+     "PEOPLE",
+     -46
+    ],
+    [
+     "OP",
+     -45
+    ]
+   ],
+   "top3share": 0.3857
+  },
+  {
+   "name": "Hacimce ilk 100 + piyasa filtresi",
+   "ret": -0.6924,
+   "cagr": -0.3237,
+   "maxDD": 0.7972,
+   "h1": -0.4531,
+   "h2": -0.4375,
+   "nTrades": 653,
+   "winRate": 0.3032,
+   "profitFactor": 0.8177,
+   "exposure": 0.5363,
+   "sharpe": -0.532,
+   "tradedSymbols": 208,
+   "best": [
+    [
+     "SUPER",
+     136
+    ],
+    [
+     "DOGE",
+     114
+    ],
+    [
+     "SEI",
+     97
+    ],
+    [
+     "SC",
+     87
+    ],
+    [
+     "IMX",
+     87
+    ]
+   ],
+   "worst": [
+    [
+     "ENA",
+     -82
+    ],
+    [
+     "LDO",
+     -80
+    ],
+    [
+     "LPT",
+     -79
+    ],
+    [
+     "JTO",
+     -74
+    ],
+    [
+     "APT",
+     -66
+    ]
+   ],
+   "top3share": 0.1918
+  },
+  {
+   "name": "Bütün piyasa + piyasa filtresi",
+   "ret": -0.89,
+   "cagr": -0.5192,
+   "maxDD": 0.8956,
+   "h1": -0.5831,
+   "h2": -0.736,
+   "nTrades": 813,
+   "winRate": 0.2657,
+   "profitFactor": 0.7241,
+   "exposure": 0.5835,
+   "sharpe": -1.0106,
+   "tradedSymbols": 322,
+   "best": [
+    [
+     "SEI",
+     108
+    ],
+    [
+     "BEL",
+     74
+    ],
+    [
+     "DOGE",
+     63
+    ],
+    [
+     "POLYX",
+     62
+    ],
+    [
+     "NEAR",
+     58
+    ]
+   ],
+   "worst": [
+    [
+     "TFUEL",
+     -66
+    ],
+    [
+     "LDO",
+     -51
+    ],
+    [
+     "CTSI",
+     -48
+    ],
+    [
+     "LPT",
+     -44
+    ],
+    [
+     "MAV",
+     -42
+    ]
+   ],
+   "top3share": 0.1819
+  }
+ ]
+}

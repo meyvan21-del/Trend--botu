@@ -1,0 +1,134 @@
+{
+ "at": 1794596759217,
+ "tf": "4h",
+ "years": 3,
+ "bars": {
+  "ETH": 6800,
+  "BTC": 6800,
+  "ARB": 6800,
+  "LINK": 6800,
+  "GMX": 6800
+ },
+ "notes": [],
+ "variants": [
+  {
+   "name": "Yalnızca ETH",
+   "assets": [
+    "ETH"
+   ],
+   "from": 1699531200000,
+   "to": 1794571200000,
+   "ret": 0.2976,
+   "bhRet": -0.0492,
+   "cagr": 0.0903,
+   "maxDD": 0.2078,
+   "bhMaxDD": 0.6803,
+   "h1": 0.0361,
+   "h2": 0.2524,
+   "nTrades": 61,
+   "winRate": 0.2131,
+   "profitFactor": 1.4423,
+   "exposure": 0.2125,
+   "sharpe": 0.693,
+   "perAsset": [
+    {
+     "sym": "ETH",
+     "n": 61,
+     "wins": 13,
+     "pnl": 297.59
+    }
+   ]
+  },
+  {
+   "name": "ETH + BTC",
+   "assets": [
+    "ETH",
+    "BTC"
+   ],
+   "from": 1699531200000,
+   "to": 1794571200000,
+   "ret": 0.3449,
+   "bhRet": 0.4044,
+   "cagr": 0.1033,
+   "maxDD": 0.2234,
+   "bhMaxDD": 0.589,
+   "h1": 0.3238,
+   "h2": 0.0159,
+   "nTrades": 118,
+   "winRate": 0.2881,
+   "profitFactor": 1.2816,
+   "exposure": 0.3019,
+   "sharpe": 0.6494,
+   "perAsset": [
+    {
+     "sym": "ETH",
+     "n": 61,
+     "wins": 13,
+     "pnl": 174.09
+    },
+    {
+     "sym": "BTC",
+     "n": 57,
+     "wins": 21,
+     "pnl": 170.84
+    }
+   ]
+  },
+  {
+   "name": "Beş varlık (varsayılan)",
+   "assets": [
+    "ETH",
+    "BTC",
+    "ARB",
+    "LINK",
+    "GMX"
+   ],
+   "from": 1699531200000,
+   "to": 1794571200000,
+   "ret": 0.0785,
+   "bhRet": -0.2512,
+   "cagr": 0.0254,
+   "maxDD": 0.2961,
+   "bhMaxDD": 0.6465,
+   "h1": -0.0611,
+   "h2": 0.1487,
+   "nTrades": 210,
+   "winRate": 0.3,
+   "profitFactor": 1.0514,
+   "exposure": 0.3831,
+   "sharpe": 0.2253,
+   "perAsset": [
+    {
+     "sym": "ETH",
+     "n": 52,
+     "wins": 13,
+     "pnl": 132.44
+    },
+    {
+     "sym": "BTC",
+     "n": 54,
+     "wins": 21,
+     "pnl": 69.71
+    },
+    {
+     "sym": "ARB",
+     "n": 30,
+     "wins": 11,
+     "pnl": 200.83
+    },
+    {
+     "sym": "LINK",
+     "n": 36,
+     "wins": 11,
+     "pnl": -3.4
+    },
+    {
+     "sym": "GMX",
+     "n": 38,
+     "wins": 7,
+     "pnl": -321.09
+    }
+   ]
+  }
+ ]
+}

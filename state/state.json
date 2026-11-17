@@ -5,16 +5,16 @@
    "halted": null,
    "positions": {},
    "barT": {
-    "ETH": 1794916800000,
-    "BTC": 1794916800000,
+    "ETH": 1794931200000,
+    "BTC": 1794931200000,
     "ARB": 1794585600000,
     "LINK": 1794585600000,
     "GMX": 1794585600000
    },
    "cool": {},
    "lastPx": {
-    "ETH": 1791.11,
-    "BTC": 63798.7,
+    "ETH": 1797.77,
+    "BTC": 63970.69,
     "ARB": 0.1458,
     "LINK": 10.001,
     "GMX": 7.75
@@ -53,8 +53,8 @@
   "tok": {}
  },
  "eq": 1000,
- "lastRun": 1794943487333,
- "savedAt": 1794943487333,
+ "lastRun": 1794946925916,
+ "savedAt": 1794946925916,
  "assets": [
   "ETH",
   "BTC"
@@ -62,12 +62,12 @@
  "maxPositions": 2,
  "scan": {
   "ETH": {
-   "price": 1791.11,
+   "price": 1797.77,
    "trendUp": false,
    "breakout": 1919.76
   },
   "BTC": {
-   "price": 63798.7,
+   "price": 63970.69,
    "trendUp": false,
    "breakout": 67523.05
   }

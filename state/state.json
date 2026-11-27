@@ -5,22 +5,22 @@
    "halted": null,
    "positions": {},
    "barT": {
-    "ETH": 1795708800000,
-    "BTC": 1795708800000,
+    "ETH": 1795723200000,
+    "BTC": 1795723200000,
     "ARB": 1794585600000,
     "LINK": 1794585600000,
     "GMX": 1794585600000
    },
    "cool": {},
    "lastPx": {
-    "ETH": 1688.86,
-    "BTC": 60480.01,
+    "ETH": 1688.41,
+    "BTC": 60506.06,
     "ARB": 0.1458,
     "LINK": 10.001,
     "GMX": 7.75
    },
    "peakEq": 1000,
-   "dayKey": "2026-11-26",
+   "dayKey": "2026-11-27",
    "dayStartEq": 1000,
    "errCount": 0
   }
@@ -53,8 +53,8 @@
   "tok": {}
  },
  "eq": 1000,
- "lastRun": 1795734846576,
- "savedAt": 1795734846576,
+ "lastRun": 1795738272710,
+ "savedAt": 1795738272710,
  "assets": [
   "ETH",
   "BTC"
@@ -62,12 +62,12 @@
  "maxPositions": 2,
  "scan": {
   "ETH": {
-   "price": 1688.86,
+   "price": 1688.41,
    "trendUp": false,
    "breakout": 1845.07
   },
   "BTC": {
-   "price": 60480.01,
+   "price": 60506.06,
    "trendUp": false,
    "breakout": 64603.12
   }
